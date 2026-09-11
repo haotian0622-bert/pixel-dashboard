@@ -1,0 +1,188 @@
+<template>
+  <div class="fitness">
+    <PixelWindow title="健身计划" icon="♥">
+      <!-- 周排程 -->
+      <div class="fitness__section">
+        <h3>周训练排程</h3>
+        <div class="fitness__schedule">
+          <div v-for="day in 7" :key="day" class="fitness__day" :class="{ 'fitness__day--today': isToday(day) }">
+            <div class="fitness__day-header">周{{ weekdayNames[day - 1] }}</div>
+            <div v-if="schedule[day]" class="fitness__day-content">
+              <span class="fitness__day-name">{{ schedule[day].name }}</span>
+              <div v-if="schedule[day].exercises?.length" class="fitness__exercises">
+                <span v-for="(ex, i) in schedule[day].exercises" :key="i" class="fitness__exercise">
+                  {{ ex.name }} {{ ex.sets }}x{{ ex.reps }}
+                </span>
+              </div>
+            </div>
+            <button v-else class="pixel-btn fitness__day-add" @click="editSchedule(day)">+ 添加</button>
+            <button v-if="schedule[day]" class="pixel-btn fitness__day-edit" @click="editSchedule(day)">改</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 今日打卡 -->
+      <div class="fitness__section">
+        <h3>今日打卡</h3>
+        <div class="fitness__checkin">
+          <button class="pixel-btn pixel-btn--confirm" @click="checkin" :disabled="todayChecked">
+            {{ todayChecked ? '已打卡 ✔' : '点击打卡' }}
+          </button>
+          <span class="fitness__streak">本周已练 {{ weekCount }} 次</span>
+        </div>
+      </div>
+
+      <!-- 身体数据 -->
+      <div class="fitness__section">
+        <h3>身体数据</h3>
+        <div class="fitness__body-form">
+          <input type="date" class="pixel-input" v-model="bodyForm.date" />
+          <input class="pixel-input" v-model="bodyForm.weight" placeholder="体重(kg)" type="number" />
+          <input class="pixel-input" v-model="bodyForm.bodyFat" placeholder="体脂(%)" type="number" />
+          <button class="pixel-btn pixel-btn--confirm" @click="saveBody">记录</button>
+        </div>
+        <ul v-if="bodyList.length" class="fitness__body-list">
+          <li v-for="b in bodyList" :key="b.id" class="fitness__body-item">
+            <span>{{ b.date }}</span>
+            <span>{{ b.weight }}kg</span>
+            <span v-if="b.bodyFat">{{ b.bodyFat }}%</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- 排程编辑弹窗 -->
+      <div v-if="editingDay" class="fitness__edit-overlay" @click.self="editingDay = null">
+        <div class="fitness__edit-form pixel-window">
+          <div class="pixel-window__titlebar"><span>训练排程</span></div>
+          <div class="pixel-window__body">
+            <PixelInput v-model="scheduleForm.name" placeholder="训练名称（如 胸+三头）" />
+            <h4>动作清单</h4>
+            <div v-for="(ex, i) in scheduleForm.exercises" :key="i" class="fitness__ex-row">
+              <input class="pixel-input" v-model="ex.name" placeholder="动作名" />
+              <input class="pixel-input" v-model="ex.sets" placeholder="组数" type="number" />
+              <input class="pixel-input" v-model="ex.reps" placeholder="次数" />
+              <button class="pixel-btn pixel-btn--cancel" @click="scheduleForm.exercises.splice(i, 1)">删</button>
+            </div>
+            <button class="pixel-btn" @click="scheduleForm.exercises.push({ name: '', sets: '', reps: '' })">+ 添加动作</button>
+            <div class="fitness__edit-actions">
+              <button class="pixel-btn pixel-btn--confirm" @click="saveSchedule">保存</button>
+              <button class="pixel-btn pixel-btn--cancel" @click="editingDay = null">取消</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </PixelWindow>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted } from 'vue'
+import PixelWindow from '@/components/PixelWindow.vue'
+import PixelInput from '@/components/PixelInput.vue'
+import { getAll, save, query } from '@/db/dao'
+import { today, getWeekday, isThisWeek } from '@/utils/date'
+
+const weekdayNames = ['一', '二', '三', '四', '五', '六', '日']
+const schedule = reactive({})
+const logs = ref([])
+const bodyList = ref([])
+const todayChecked = ref(false)
+const weekCount = ref(0)
+const editingDay = ref(null)
+const scheduleForm = ref({ name: '', exercises: [] })
+const bodyForm = ref({ date: today(), weight: '', bodyFat: '' })
+
+function isToday(day) {
+  return day === getWeekday()
+}
+
+async function loadSchedule() {
+  const all = await getAll('fitnessSchedule')
+  for (const s of all) {
+    schedule[s.weekday] = s
+  }
+}
+
+async function loadLogs() {
+  logs.value = await getAll('fitnessLogs')
+  const todayStr = today()
+  todayChecked.value = logs.value.some(l => l.date === todayStr && l.done)
+  weekCount.value = logs.value.filter(l => isThisWeek(l.date) && l.done).length
+}
+
+async function loadBody() {
+  bodyList.value = (await getAll('fitnessBody')).sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+}
+
+function editSchedule(day) {
+  editingDay.value = day
+  const existing = schedule[day]
+  scheduleForm.value = {
+    name: existing?.name || '',
+    exercises: existing?.exercises ? existing.exercises.map(e => ({ ...e })) : [{ name: '', sets: '', reps: '' }]
+  }
+}
+
+async function saveSchedule() {
+  const day = editingDay.value
+  const existing = schedule[day]
+  await save('fitnessSchedule', {
+    id: existing?.id,
+    weekday: day,
+    name: scheduleForm.value.name,
+    exercises: scheduleForm.value.exercises.filter(e => e.name.trim())
+  })
+  editingDay.value = null
+  // 重新加载
+  const all = await getAll('fitnessSchedule')
+  for (const key in schedule) delete schedule[key]
+  for (const s of all) schedule[s.weekday] = s
+}
+
+async function checkin() {
+  await save('fitnessLogs', { date: today(), done: true })
+  await loadLogs()
+}
+
+async function saveBody() {
+  if (!bodyForm.value.weight) return
+  await save('fitnessBody', { ...bodyForm.value, weight: Number(bodyForm.value.weight), bodyFat: bodyForm.value.bodyFat ? Number(bodyForm.value.bodyFat) : undefined })
+  bodyForm.value = { date: today(), weight: '', bodyFat: '' }
+  await loadBody()
+}
+
+onMounted(async () => {
+  await loadSchedule()
+  await loadLogs()
+  await loadBody()
+})
+</script>
+
+<style scoped>
+.fitness { max-width: 800px; margin: 0 auto; }
+.fitness__section { margin-bottom: 1.5rem; }
+.fitness__section h3 { font-size: 0.9rem; margin-bottom: 0.5rem; }
+.fitness__schedule { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; }
+.fitness__day { border: 3px solid var(--border); background: var(--bg); padding: 0.5rem; text-align: center; min-height: 80px; }
+.fitness__day--today { border-color: var(--accent); background: var(--panel); }
+.fitness__day-header { font-size: 0.75rem; font-weight: bold; margin-bottom: 0.25rem; }
+.fitness__day-content { font-size: 0.7rem; }
+.fitness__day-name { display: block; margin-bottom: 0.25rem; }
+.fitness__exercises { display: flex; flex-direction: column; gap: 0.1rem; }
+.fitness__exercise { font-size: 0.65rem; color: var(--ochre); }
+.fitness__day-add { padding: 0.2rem 0.4rem; font-size: 0.65rem; }
+.fitness__day-edit { padding: 0.1rem 0.3rem; font-size: 0.6rem; margin-top: 0.25rem; }
+.fitness__checkin { display: flex; align-items: center; gap: 1rem; }
+.fitness__streak { font-size: 0.85rem; color: var(--olive); }
+.fitness__body-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.fitness__body-list { display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.5rem; }
+.fitness__body-item { display: flex; gap: 1rem; font-size: 0.8rem; padding: 0.25rem; border-bottom: 1px solid var(--border); }
+.fitness__edit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.fitness__edit-form { min-width: 400px; max-width: 600px; }
+.fitness__ex-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
+.fitness__ex-row .pixel-input { flex: 1; }
+.fitness__edit-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+@media (max-width: 768px) {
+  .fitness__schedule { grid-template-columns: repeat(2, 1fr); }
+}
+</style>

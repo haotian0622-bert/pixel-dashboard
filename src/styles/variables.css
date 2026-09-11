@@ -1,0 +1,47 @@
+/* ========== CSS 变量 · 色板 ========== */
+
+/* 日间主题 · 米黄纸感 */
+[data-theme="light"] {
+  --bg: #EFE3C8;
+  --panel: #F7EED9;
+  --text: #4A3728;
+  --accent: #E07A3F;
+  --ochre: #A9703F;
+  --olive: #7A8450;
+  --border: #4A3728;
+
+  /* 模块专属色 */
+  --c-plan: #E07A3F;      /* 橘红 · 计划 */
+  --c-media: #C9A227;     /* 芥末金 · 自媒体 */
+  --c-dev: #6B7B8C;       /* 灰蓝 · 开发 */
+  --c-company: #B05A3C;   /* 砖红 · 公司 */
+  --c-fitness: #7A8450;   /* 橄榄绿 · 健身 */
+  --c-study: #7B5E8C;     /* 藤紫 · 学习 */
+  --c-finance: #5C8A5C;   /* 翠绿 · 收支 */
+  --c-settings: #8C8478;  /* 暖灰 · 设置 */
+
+  --shadow: rgba(74, 55, 40, 0.15);
+}
+
+/* 夜间主题 · 琥珀夜灯 */
+[data-theme="dark"] {
+  --bg: #2B2118;
+  --panel: #3A2E22;
+  --text: #E8A44C;
+  --accent: #E8A44C;
+  --ochre: #C08040;
+  --olive: #8A9460;
+  --border: #E8A44C;
+
+  /* 模块专属色（夜间调亮） */
+  --c-plan: #E88A5F;
+  --c-media: #D9B237;
+  --c-dev: #8B9BAC;
+  --c-company: #C06A4C;
+  --c-fitness: #9AA470;
+  --c-study: #9B7EAC;
+  --c-finance: #7C9A7C;
+  --c-settings: #ACA4A0;
+
+  --shadow: rgba(0, 0, 0, 0.4);
+}

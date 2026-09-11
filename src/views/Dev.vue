@@ -1,0 +1,114 @@
+<template>
+  <div class="dev">
+    <PixelWindow title="开发工作（AI）" icon="⚙">
+      <div class="dev__header">
+        <span>{{ projects.length }} 个项目</span>
+        <button class="pixel-btn" @click="showForm = !showForm">+ 新增项目</button>
+      </div>
+
+      <div v-if="showForm" class="dev__form">
+        <PixelInput v-model="form.name" placeholder="项目名称" />
+        <PixelInput v-model="form.desc" type="textarea" placeholder="项目简述" :rows="2" />
+        <div class="dev__actions">
+          <button class="pixel-btn pixel-btn--confirm" @click="saveProject">保存</button>
+          <button class="pixel-btn pixel-btn--cancel" @click="showForm = false">取消</button>
+        </div>
+      </div>
+
+      <PixelEmpty v-if="projects.length === 0" text="暂无项目" />
+      <ul v-else class="project-list">
+        <li v-for="p in projects" :key="p.id" class="project-list__item" @click="goDetail(p.id)">
+          <div class="project-list__info">
+            <span class="project-list__name">{{ p.name }}</span>
+            <span class="project-list__status" :style="{ color: statusColor(p.status) }">
+              {{ statusLabels[p.status] }}
+            </span>
+          </div>
+          <div class="project-list__desc">{{ p.desc }}</div>
+          <div class="project-list__progress">
+            <PixelProgress :value="getProgress(p.id)" :max="10" />
+          </div>
+        </li>
+      </ul>
+    </PixelWindow>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import PixelWindow from '@/components/PixelWindow.vue'
+import PixelInput from '@/components/PixelInput.vue'
+import PixelProgress from '@/components/PixelProgress.vue'
+import PixelEmpty from '@/components/PixelEmpty.vue'
+import { getAll, save, query } from '@/db/dao'
+import { DEV_PROJECT_STATUS, DEV_PROJECT_STATUS_LABELS } from '@/utils/constants'
+
+const router = useRouter()
+const projects = ref([])
+const showForm = ref(false)
+const form = ref({ name: '', desc: '' })
+const taskCache = ref({}) // projectId -> tasks
+
+const statusLabels = DEV_PROJECT_STATUS_LABELS
+
+function statusColor(status) {
+  const colors = {
+    planning: 'var(--ochre)',
+    active: 'var(--olive)',
+    paused: 'var(--c-dev)',
+    done: 'var(--accent)'
+  }
+  return colors[status] || 'var(--text)'
+}
+
+function getProgress(projectId) {
+  const tasks = taskCache.value[projectId] || []
+  if (tasks.length === 0) return 0
+  const done = tasks.filter(t => t.done).length
+  return Math.round((done / tasks.length) * 100)
+}
+
+async function loadProjects() {
+  projects.value = await getAll('devProjects')
+  for (const p of projects.value) {
+    const tasks = await query('devTasks', 'projectId', p.id)
+    taskCache.value[p.id] = tasks
+  }
+}
+
+async function saveProject() {
+  if (!form.value.name.trim()) return
+  await save('devProjects', {
+    name: form.value.name.trim(),
+    desc: form.value.desc,
+    status: DEV_PROJECT_STATUS.PLANNING
+  })
+  form.value = { name: '', desc: '' }
+  showForm.value = false
+  await loadProjects()
+}
+
+function goDetail(id) {
+  router.push(`/dev/${id}`)
+}
+
+onMounted(async () => {
+  await loadProjects()
+})
+</script>
+
+<style scoped>
+.dev { max-width: 800px; margin: 0 auto; }
+.dev__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.dev__form { border: 3px solid var(--border); padding: 0.75rem; margin-bottom: 1rem; background: var(--bg); display: flex; flex-direction: column; gap: 0.5rem; }
+.dev__actions { display: flex; gap: 0.5rem; }
+.project-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.project-list__item { border: 3px solid var(--border); padding: 0.75rem; background: var(--bg); cursor: pointer; }
+.project-list__item:hover { background: var(--panel); }
+.project-list__info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.project-list__name { font-size: 0.9rem; font-weight: bold; }
+.project-list__status { font-size: 0.75rem; }
+.project-list__desc { font-size: 0.8rem; color: var(--ochre); margin-bottom: 0.5rem; }
+.project-list__progress { display: flex; align-items: center; }
+</style>
