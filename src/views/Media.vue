@@ -17,6 +17,10 @@
           <PixelInput v-model="form.platform" placeholder="如 b站/小红书" />
         </div>
         <div class="media__row">
+          <label>耗时(h):</label>
+          <input type="number" class="pixel-input" v-model.number="form.timeCost" min="0" step="0.5" style="max-width: 90px" placeholder="0" />
+        </div>
+        <div class="media__row">
           <label>状态:</label>
           <select class="pixel-select" v-model="form.status">
             <option v-for="(label, key) in statusLabels" :key="key" :value="key">{{ label }}</option>
@@ -41,6 +45,7 @@
             <span class="idea-list__status" :style="{ color: statusColor(item.status) }">
               {{ statusLabels[item.status] }}
             </span>
+            <span v-if="item.timeCost" class="idea-list__time-cost">⏱{{ item.timeCost }}h</span>
             <span v-if="item.publishDate" class="idea-list__date">{{ item.publishDate }}</span>
           </div>
           <div class="idea-list__actions">
@@ -76,7 +81,8 @@ const form = ref({
   status: MEDIA_STATUS.IDEA,
   publishDate: '',
   link: '',
-  note: ''
+  note: '',
+  timeCost: 0
 })
 
 const statusLabels = MEDIA_STATUS_LABELS
@@ -103,17 +109,17 @@ async function loadList() {
 function resetForm() {
   form.value = {
     title: '', platform: '', status: MEDIA_STATUS.IDEA,
-    publishDate: '', link: '', note: ''
+    publishDate: '', link: '', note: '', timeCost: 0
   }
 }
 
 async function saveIdea() {
   if (!form.value.title.trim()) return
   if (editingId.value) {
-    await save('media', { ...form.value, id: editingId.value })
+    await save('media', { ...form.value, id: editingId.value, timeCost: Number(form.value.timeCost) || 0 })
     editingId.value = null
   } else {
-    await save('media', { ...form.value })
+    await save('media', { ...form.value, timeCost: Number(form.value.timeCost) || 0 })
   }
   resetForm()
   showForm.value = false
@@ -156,6 +162,7 @@ onMounted(async () => {
 .idea-list__platform { font-size: 1rem; font-weight: 600; color: var(--ochre); }
 .idea-list__status { font-size: 1.05rem; font-weight: bold; }
 .idea-list__date { font-size: 1rem; font-weight: 600; color: var(--ochre); }
+.idea-list__time-cost { font-size: 0.95rem; font-weight: 700; color: var(--olive); white-space: nowrap; }
 .idea-list__actions { display: flex; gap: 0.25rem; align-items: center; }
 .idea-list__actions .pixel-btn { padding: 0.2rem 0.5rem; font-size: 1rem; font-weight: 600; }
 .idea-list__status-select { padding: 0.2rem; font-size: 1rem; font-weight: 600; }

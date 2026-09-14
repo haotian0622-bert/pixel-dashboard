@@ -13,6 +13,7 @@
       <div v-if="showForm" class="study__form">
         <PixelInput v-model="form.name" placeholder="主题名称" />
         <PixelInput v-model="form.goal" placeholder="一句话目标" />
+        <label>耗时(h):</label><input type="number" class="pixel-input" v-model.number="form.timeCost" min="0" step="0.5" style="max-width: 90px" placeholder="0" />
         <div class="study__actions">
           <button class="pixel-btn pixel-btn--confirm" @click="saveTopic">保存</button>
           <button class="pixel-btn pixel-btn--cancel" @click="showForm = false">取消</button>
@@ -26,6 +27,7 @@
             <span class="topic-list__name">{{ t.name }}</span>
             <span class="topic-list__goal">{{ t.goal }}</span>
             <span class="topic-list__status" :style="{ color: statusColor(t.status) }">{{ statusLabels[t.status] }}</span>
+            <span v-if="t.timeCost" class="topic-list__time-cost">⏱{{ t.timeCost }}h</span>
           </div>
           <div class="topic-list__progress">
             <PixelProgress :value="getProgress(t.id)" :max="10" />
@@ -50,7 +52,7 @@ import { isThisWeek } from '@/utils/date'
 const router = useRouter()
 const topics = ref([])
 const showForm = ref(false)
-const form = ref({ name: '', goal: '' })
+const form = ref({ name: '', goal: '', timeCost: 0 })
 const logs = ref([])
 const taskCache = ref({})
 
@@ -80,8 +82,8 @@ async function loadData() {
 
 async function saveTopic() {
   if (!form.value.name.trim()) return
-  await save('studyTopics', { name: form.value.name.trim(), goal: form.value.goal, status: STUDY_STATUS.ACTIVE })
-  form.value = { name: '', goal: '' }
+  await save('studyTopics', { name: form.value.name.trim(), goal: form.value.goal, timeCost: Number(form.value.timeCost) || 0, status: STUDY_STATUS.ACTIVE })
+  form.value = { name: '', goal: '', timeCost: 0 }
   showForm.value = false
   await loadData()
 }
@@ -106,5 +108,6 @@ onMounted(async () => { await loadData() })
 .topic-list__name { font-size: 1.15rem; font-weight: bold; }
 .topic-list__goal { font-size: 1.05rem; font-weight: 700; color: var(--ochre); flex: 1; }
 .topic-list__status { font-size: 1.05rem; font-weight: 700; }
+.topic-list__time-cost { font-size: 0.95rem; font-weight: 700; color: var(--olive); white-space: nowrap; }
 .topic-list__progress { display: flex; align-items: center; }
 </style>

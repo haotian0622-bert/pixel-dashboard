@@ -22,12 +22,14 @@
         <div v-if="showTaskForm" class="study-detail__form">
           <PixelInput v-model="taskForm.title" placeholder="任务标题" />
           <input type="date" class="pixel-input" v-model="taskForm.dueDate" />
+          <label>耗时(h):</label><input type="number" class="pixel-input" v-model.number="taskForm.timeCost" min="0" step="0.5" style="max-width: 90px" placeholder="0" />
           <button class="pixel-btn pixel-btn--confirm" @click="saveTask">保存</button>
         </div>
         <ul v-if="tasks.length" class="item-list">
           <li v-for="t in tasks" :key="t.id" class="item-list__item">
             <span class="task-checkbox" :class="{ 'task-checkbox--checked': t.done }" @click="toggleTask(t)">{{ t.done ? '✔' : '□' }}</span>
             <span class="item-list__title" :class="{ 'task-done': t.done }">{{ t.title }}</span>
+            <span v-if="t.timeCost" class="item-list__time-cost">⏱{{ t.timeCost }}h</span>
             <span v-if="t.dueDate" class="item-list__date">{{ t.dueDate }}</span>
             <button class="pixel-btn pixel-btn--cancel" @click="deleteTask(t)">删</button>
           </li>
@@ -90,7 +92,7 @@ const materials = ref([])
 
 const showTaskForm = ref(false)
 const showMatForm = ref(false)
-const taskForm = ref({ title: '', dueDate: '' })
+const taskForm = ref({ title: '', dueDate: '', timeCost: 0 })
 const logForm = ref({ date: today(), content: '', duration: '' })
 const matForm = ref({ content: '' })
 
@@ -109,8 +111,8 @@ async function saveTopic() {
 
 async function saveTask() {
   if (!taskForm.value.title.trim()) return
-  await save('studyTasks', { ...taskForm.value, topicId, done: false })
-  taskForm.value = { title: '', dueDate: '' }
+  await save('studyTasks', { ...taskForm.value, topicId, timeCost: Number(taskForm.value.timeCost) || 0, done: false })
+  taskForm.value = { title: '', dueDate: '', timeCost: 0 }
   showTaskForm.value = false
   await loadData()
 }
@@ -165,4 +167,5 @@ onMounted(async () => { await loadData() })
 .item-list__item:last-child { border-bottom: none; }
 .item-list__title { flex: 1; }
 .item-list__date { font-size: 1rem; font-weight: 600; color: var(--ochre); }
+.item-list__time-cost { font-size: 0.95rem; font-weight: 700; color: var(--olive); white-space: nowrap; }
 </style>

@@ -37,6 +37,16 @@
               v-model="newTask.priority"
               :options="priorityOptions"
             />
+            <label>耗时(h):</label>
+            <input
+              type="number"
+              class="pixel-input"
+              v-model.number="newTask.timeCost"
+              min="0"
+              step="0.5"
+              style="max-width: 90px"
+              placeholder="0"
+            />
           </div>
           <PixelInput
             v-model="newTask.note"
@@ -77,6 +87,9 @@
               <span class="task-list__source">{{ sourceLabels[item.source] }}</span>
               <span v-if="item.priority" class="task-list__priority">
                 {{ prioritySymbols[item.priority] }}
+              </span>
+              <span v-if="item.timeCost" class="task-list__time-cost">
+                ⏱{{ item.timeCost }}h
               </span>
               <span
                 v-if="item.source === 'manual'"
@@ -139,6 +152,16 @@
             <input type="date" class="pixel-input" v-model="editingTask.date" />
             <label>优先级:</label>
             <PixelSelect v-model="editingTask.priority" :options="priorityOptions" />
+            <label>耗时(h):</label>
+            <input
+              type="number"
+              class="pixel-input"
+              v-model.number="editingTask.timeCost"
+              min="0"
+              step="0.5"
+              style="max-width: 90px"
+              placeholder="0"
+            />
           </div>
           <PixelInput v-model="editingTask.note" type="textarea" placeholder="备注" :rows="2" />
           <div class="plan__add-actions">
@@ -184,7 +207,8 @@ const newTask = ref({
   title: '',
   date: todayStr,
   priority: PRIORITY.MEDIUM,
-  note: ''
+  note: '',
+  timeCost: 0
 })
 
 const priorityOptions = [
@@ -246,10 +270,11 @@ async function saveNewTask() {
     date: newTask.value.date,
     priority: newTask.value.priority,
     note: newTask.value.note,
+    timeCost: Number(newTask.value.timeCost) || 0,
     done: false,
     source: 'manual'
   })
-  newTask.value = { title: '', date: todayStr, priority: PRIORITY.MEDIUM, note: '' }
+  newTask.value = { title: '', date: todayStr, priority: PRIORITY.MEDIUM, note: '', timeCost: 0 }
   showAddForm.value = false
   await loadTodayItems()
   await loadWeekDays()
@@ -267,6 +292,7 @@ async function saveEdit() {
     date: editingTask.value.date,
     priority: editingTask.value.priority,
     note: editingTask.value.note || '',
+    timeCost: Number(editingTask.value.timeCost) || 0,
     done: editingTask.value.done,
     source: 'manual'
   })
@@ -359,6 +385,12 @@ onMounted(async () => {
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--accent);
+}
+.task-list__time-cost {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--olive);
+  white-space: nowrap;
 }
 .task-list__actions {
   display: flex;

@@ -45,6 +45,8 @@
           <select class="pixel-select" v-model="taskForm.priority">
             <option v-for="(label, key) in priorityLabels" :key="key" :value="key">{{ label }}</option>
           </select>
+          <label>耗时(h):</label>
+          <input type="number" class="pixel-input" v-model.number="taskForm.timeCost" min="0" step="0.5" style="max-width: 90px" placeholder="0" />
           <button class="pixel-btn pixel-btn--confirm" @click="saveTask">保存</button>
         </div>
         <ul v-if="tasks.length" class="item-list">
@@ -53,6 +55,7 @@
               @click="toggleTask(t)">{{ t.done ? '✔' : '□' }}</span>
             <span class="item-list__title" :class="{ 'task-done': t.done }">{{ t.title }}</span>
             <span v-if="t.dueDate" class="item-list__date">{{ t.dueDate }}</span>
+            <span v-if="t.timeCost" class="item-list__time-cost">⏱{{ t.timeCost }}h</span>
             <button class="pixel-btn pixel-btn--cancel" @click="deleteTask(t)">删</button>
           </li>
         </ul>
@@ -107,7 +110,7 @@ const showTaskForm = ref(false)
 const showSnippetForm = ref(false)
 
 const milestoneForm = ref({ name: '', dueDate: '', status: MILESTONE_STATUS.NOT_STARTED })
-const taskForm = ref({ title: '', dueDate: '', priority: 'medium' })
+const taskForm = ref({ title: '', dueDate: '', priority: 'medium', timeCost: 0 })
 const snippetForm = ref({ note: '', code: '' })
 
 const statusLabels = DEV_PROJECT_STATUS_LABELS
@@ -154,9 +157,10 @@ async function saveTask() {
   await save('devTasks', {
     ...taskForm.value,
     projectId,
-    done: false
+    done: false,
+    timeCost: Number(taskForm.value.timeCost) || 0
   })
-  taskForm.value = { title: '', dueDate: '', priority: 'medium' }
+  taskForm.value = { title: '', dueDate: '', priority: 'medium', timeCost: 0 }
   showTaskForm.value = false
   await loadData()
 }
@@ -203,5 +207,6 @@ onMounted(async () => {
 .item-list__header { display: flex; justify-content: space-between; align-items: center; }
 .item-list__title { flex: 1; }
 .item-list__date { font-size: 1rem; font-weight: 600; color: var(--ochre); }
+.item-list__time-cost { font-size: 0.95rem; font-weight: 700; color: var(--olive); white-space: nowrap; }
 .item-list__code { font-size: 1.05rem; font-weight: 700; background: var(--bg); border: 2px solid var(--border); padding: 0.5rem; overflow: auto; white-space: pre-wrap; word-break: break-all; }
 </style>

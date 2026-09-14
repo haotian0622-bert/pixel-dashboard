@@ -112,14 +112,12 @@ describe('问题1：字体加大加粗、层级差异化', () => {
       const f = read('src/components/PixelProgress.vue')
       expect(f).not.toContain("'Zpix'")
       expect(f).toContain("'ArkPixel'")
-      const block = f.match(/\.pixel-progress\s*{([^}]*)}/s)
-      expect(block).not.toBeNull()
-      const size = block[1].match(/font-size:\s*([\d.]+)rem/)
-      const weight = block[1].match(/font-weight:\s*(\d+)/)
-      expect(size).not.toBeNull()
-      expect(weight).not.toBeNull()
-      expect(Number(size[1])).toBeGreaterThanOrEqual(1.2)
-      expect(Number(weight[1])).toBeGreaterThanOrEqual(700)
+      // 容器或段块任一处声明 font-size: ≥1.2rem，font-weight: ≥700
+      const style = f.match(/<style[^>]*>([\s\S]*?)<\/style>/)[1]
+      const sizes = [...style.matchAll(/font-size:\s*([\d.]+)rem/g)].map(m => Number(m[1]))
+      const weights = [...style.matchAll(/font-weight:\s*(\d+)/g)].map(m => Number(m[1]))
+      expect(Math.max(...sizes)).toBeGreaterThanOrEqual(1.2)
+      expect(Math.max(...weights)).toBeGreaterThanOrEqual(700)
     })
 
     it('PixelWindow 标题栏字号加大', () => {

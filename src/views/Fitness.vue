@@ -9,6 +9,7 @@
             <div class="fitness__day-header">周{{ weekdayNames[day - 1] }}</div>
             <div v-if="schedule[day]" class="fitness__day-content">
               <span class="fitness__day-name">{{ schedule[day].name }}</span>
+              <span v-if="schedule[day].duration" class="fitness__day-duration">⏱{{ schedule[day].duration }}min</span>
               <div v-if="schedule[day].exercises?.length" class="fitness__exercises">
                 <span v-for="(ex, i) in schedule[day].exercises" :key="i" class="fitness__exercise">
                   {{ ex.name }} {{ ex.sets }}x{{ ex.reps }}
@@ -56,6 +57,18 @@
           <div class="pixel-window__titlebar"><span>训练排程</span></div>
           <div class="pixel-window__body">
             <PixelInput v-model="scheduleForm.name" placeholder="训练名称（如 胸+三头）" />
+            <div class="fitness__ex-duration">
+              <label>耗时(min):</label>
+              <input
+                type="number"
+                class="pixel-input"
+                v-model.number="scheduleForm.duration"
+                min="0"
+                step="5"
+                style="max-width: 100px"
+                placeholder="0"
+              />
+            </div>
             <h4>动作清单</h4>
             <div v-for="(ex, i) in scheduleForm.exercises" :key="i" class="fitness__ex-row">
               <input class="pixel-input" v-model="ex.name" placeholder="动作名" />
@@ -89,7 +102,7 @@ const bodyList = ref([])
 const todayChecked = ref(false)
 const weekCount = ref(0)
 const editingDay = ref(null)
-const scheduleForm = ref({ name: '', exercises: [] })
+const scheduleForm = ref({ name: '', exercises: [], duration: 0 })
 const bodyForm = ref({ date: today(), weight: '', bodyFat: '' })
 
 function isToday(day) {
@@ -119,6 +132,7 @@ function editSchedule(day) {
   const existing = schedule[day]
   scheduleForm.value = {
     name: existing?.name || '',
+    duration: existing?.duration || 0,
     exercises: existing?.exercises ? existing.exercises.map(e => ({ ...e })) : [{ name: '', sets: '', reps: '' }]
   }
 }
@@ -130,6 +144,7 @@ async function saveSchedule() {
     id: existing?.id,
     weekday: day,
     name: scheduleForm.value.name,
+    duration: Number(scheduleForm.value.duration) || 0,
     exercises: scheduleForm.value.exercises.filter(e => e.name.trim())
   })
   editingDay.value = null
@@ -168,6 +183,8 @@ onMounted(async () => {
 .fitness__day-header { font-size: 1.05rem; font-weight: bold; margin-bottom: 0.25rem; }
 .fitness__day-content { font-size: 1rem; font-weight: 600; }
 .fitness__day-name { display: block; margin-bottom: 0.25rem; }
+.fitness__day-duration { font-size: 0.9rem; font-weight: 700; color: var(--olive); }
+.fitness__ex-duration { display: flex; align-items: center; gap: 0.5rem; margin: 0.5rem 0; font-size: 1rem; font-weight: 700; }
 .fitness__exercises { display: flex; flex-direction: column; gap: 0.1rem; }
 .fitness__exercise { font-size: 0.9rem; font-weight: 700; color: var(--ochre); }
 .fitness__day-add { padding: 0.2rem 0.4rem; font-size: 0.9rem; font-weight: 700; }

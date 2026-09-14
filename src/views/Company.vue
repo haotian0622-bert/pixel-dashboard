@@ -32,6 +32,8 @@
           <select class="pixel-select" v-model="form.status">
             <option v-for="(label, key) in statusLabels" :key="key" :value="key">{{ label }}</option>
           </select>
+          <label>耗时(h):</label>
+          <input type="number" class="pixel-input" v-model.number="form.timeCost" min="0" step="0.5" style="max-width: 90px" placeholder="0" />
         </div>
         <div class="company__actions">
           <button class="pixel-btn pixel-btn--confirm" @click="saveItem">保存</button>
@@ -48,6 +50,7 @@
             <span class="company__item-priority">{{ prioritySymbols[item.priority] }}</span>
             <span v-if="item.deadline" class="company__item-deadline">{{ item.deadline }}</span>
             <span class="company__item-status" :style="{ color: statusColor(item.status) }">{{ statusLabels[item.status] }}</span>
+            <span v-if="item.timeCost" class="company__item-time-cost">⏱{{ item.timeCost }}h</span>
           </div>
           <div class="company__item-actions">
             <button class="pixel-btn" @click="editItem(item)">改</button>
@@ -90,7 +93,7 @@ const expandedId = ref(null)
 const notes = reactive({})
 const noteText = reactive({})
 
-const form = ref({ title: '', category: COMPANY_CATEGORY.DAILY, priority: 'medium', deadline: '', status: COMPANY_STATUS.TODO })
+const form = ref({ title: '', category: COMPANY_CATEGORY.DAILY, priority: 'medium', deadline: '', status: COMPANY_STATUS.TODO, timeCost: 0 })
 const statusLabels = COMPANY_STATUS_LABELS
 const categoryLabels = COMPANY_CATEGORY_LABELS
 const priorityLabels = PRIORITY_LABELS
@@ -127,12 +130,12 @@ async function toggleNotes(item) {
 async function saveItem() {
   if (!form.value.title.trim()) return
   if (editingId.value) {
-    await save('companyItems', { ...form.value, id: editingId.value })
+    await save('companyItems', { ...form.value, timeCost: Number(form.value.timeCost) || 0, id: editingId.value })
     editingId.value = null
   } else {
-    await save('companyItems', { ...form.value })
+    await save('companyItems', { ...form.value, timeCost: Number(form.value.timeCost) || 0 })
   }
-  form.value = { title: '', category: COMPANY_CATEGORY.DAILY, priority: 'medium', deadline: '', status: COMPANY_STATUS.TODO }
+  form.value = { title: '', category: COMPANY_CATEGORY.DAILY, priority: 'medium', deadline: '', status: COMPANY_STATUS.TODO, timeCost: 0 }
   showForm.value = false
   await loadList()
 }
@@ -175,6 +178,7 @@ onMounted(async () => { await loadList() })
 .company__item-priority { font-size: 1.05rem; font-weight: 700; color: var(--accent); }
 .company__item-deadline { font-size: 1rem; font-weight: 600; color: var(--ochre); }
 .company__item-status { font-size: 1.05rem; font-weight: bold; }
+.company__item-time-cost { font-size: 0.95rem; font-weight: 700; color: var(--olive); white-space: nowrap; }
 .company__item-actions { display: flex; gap: 0.25rem; }
 .company__item-actions .pixel-btn { padding: 0.2rem 0.5rem; font-size: 1rem; font-weight: 600; }
 .company__notes { margin-top: 0.5rem; padding: 0.5rem; border: 2px solid var(--border); background: var(--bg); }

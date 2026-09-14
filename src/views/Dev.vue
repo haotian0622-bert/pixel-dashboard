@@ -9,6 +9,8 @@
       <div v-if="showForm" class="dev__form">
         <PixelInput v-model="form.name" placeholder="项目名称" />
         <PixelInput v-model="form.desc" type="textarea" placeholder="项目简述" :rows="2" />
+        <label>耗时(h):</label>
+        <input type="number" class="pixel-input" v-model.number="form.timeCost" min="0" step="0.5" style="max-width: 90px" placeholder="0" />
         <div class="dev__actions">
           <button class="pixel-btn pixel-btn--confirm" @click="saveProject">保存</button>
           <button class="pixel-btn pixel-btn--cancel" @click="showForm = false">取消</button>
@@ -23,6 +25,7 @@
             <span class="project-list__status" :style="{ color: statusColor(p.status) }">
               {{ statusLabels[p.status] }}
             </span>
+            <span v-if="p.timeCost" class="project-list__time-cost">⏱{{ p.timeCost }}h</span>
           </div>
           <div class="project-list__desc">{{ p.desc }}</div>
           <div class="project-list__progress">
@@ -47,7 +50,7 @@ import { DEV_PROJECT_STATUS, DEV_PROJECT_STATUS_LABELS } from '@/utils/constants
 const router = useRouter()
 const projects = ref([])
 const showForm = ref(false)
-const form = ref({ name: '', desc: '' })
+const form = ref({ name: '', desc: '', timeCost: 0 })
 const taskCache = ref({}) // projectId -> tasks
 
 const statusLabels = DEV_PROJECT_STATUS_LABELS
@@ -82,9 +85,10 @@ async function saveProject() {
   await save('devProjects', {
     name: form.value.name.trim(),
     desc: form.value.desc,
-    status: DEV_PROJECT_STATUS.PLANNING
+    status: DEV_PROJECT_STATUS.PLANNING,
+    timeCost: Number(form.value.timeCost) || 0
   })
-  form.value = { name: '', desc: '' }
+  form.value = { name: '', desc: '', timeCost: 0 }
   showForm.value = false
   await loadProjects()
 }
@@ -109,6 +113,7 @@ onMounted(async () => {
 .project-list__info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
 .project-list__name { font-size: 1.15rem; font-weight: bold; }
 .project-list__status { font-size: 1.05rem; font-weight: 700; }
+.project-list__time-cost { font-size: 0.95rem; font-weight: 700; color: var(--olive); white-space: nowrap; }
 .project-list__desc { font-size: 1.05rem; font-weight: 600; color: var(--ochre); margin-bottom: 0.5rem; }
 .project-list__progress { display: flex; align-items: center; }
 </style>
