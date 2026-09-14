@@ -106,7 +106,7 @@ describe('问题5：优先度补充白天/晚上时间选择', () => {
 
   describe('其他视图也支持 timeSlot', () => {
     it.each([
-      ['Media.vue', 'form.timeSlot', 'idea-list__time-slot', 'item'],
+      ['Media.vue', 'form.timeSlot', 'media-card__slot', 'item'],
       ['Company.vue', 'form.timeSlot', 'company__item-time-slot', 'item'],
       ['Dev.vue', 'form.timeSlot', 'project-list__time-slot', 'p'],
       ['DevDetail.vue', 'taskForm.timeSlot', 'item-list__time-slot', 't'],

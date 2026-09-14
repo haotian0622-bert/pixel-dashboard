@@ -177,8 +177,10 @@ describe('阶段13：全量验收（对照PRD验收标准）', () => {
 
     it('可修改状态（点子→草稿→待发→已发）', () => {
       const media = readFileSync(resolve(process.cwd(), 'src/views/Media.vue'), 'utf-8')
-      expect(media).toContain('changeStatus')
+      // 新版通过表单的 status select 修改（编辑模式）
       expect(media).toContain('MEDIA_STATUS_LABELS')
+      expect(media).toContain('editItem')
+      expect(media).toContain('saveIdea')
     })
 
     it('可排发布日期', () => {

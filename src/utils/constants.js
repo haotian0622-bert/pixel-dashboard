@@ -55,6 +55,21 @@ export const MEDIA_STATUS_LABELS = {
   published: '已发'
 }
 
+// 自媒体记录分类（栏目）
+export const MEDIA_CATEGORY = {
+  IDEA: 'idea',           // 点子/草稿区
+  PUBLISHED: 'published', // 已发布项目
+  PROGRESS: 'progress',   // 进展记录
+  ADJUST: 'adjust'        // 后续调整
+}
+
+export const MEDIA_CATEGORY_LABELS = {
+  idea: '点子/草稿',
+  published: '已发布项目',
+  progress: '进展记录',
+  adjust: '后续调整'
+}
+
 // 开发项目状态
 export const DEV_PROJECT_STATUS = {
   PLANNING: 'planning',  // 规划中

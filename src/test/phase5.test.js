@@ -26,7 +26,7 @@ describe('阶段5：自媒体模块', () => {
 
   it('可新增点子（标题、平台、状态）', async () => {
     const wrapper = await mountMedia()
-    const addBtn = wrapper.findAll('button').find(b => b.text().includes('新增点子'))
+    const addBtn = wrapper.findAll('button').find(b => b.text().includes('新增记录'))
     await addBtn.trigger('click'); await flushPromises()
     const titleInput = wrapper.findAll('input').find(i => i.attributes('placeholder') === '标题')
     await titleInput.setValue('测试视频')
@@ -43,16 +43,27 @@ describe('阶段5：自媒体模块', () => {
     await save('media', { title: '状态测试', platform: 'b站', status: MEDIA_STATUS.IDEA })
     const wrapper = await mountMedia()
     await waitFor(() => { expect(wrapper.text()).toContain('状态测试') })
-    const select = wrapper.find('.idea-list__status-select')
-    await select.setValue(MEDIA_STATUS.PUBLISHED)
-    await flushPromises(); await new Promise(r => setTimeout(r, 50))
+    // 进入编辑模式
+    const editBtn = wrapper.findAll('button').find(b => b.text() === '改')
+    await editBtn.trigger('click'); await flushPromises()
+    // 表单内含 status select，通过 v-model="form.status" 定位
+    const statusSelect = wrapper.findAll('select').find(s => s.attributes('style') === '' && s.element.value === MEDIA_STATUS.IDEA)
+      || wrapper.findAll('select').filter(s => s.element.value === MEDIA_STATUS.IDEA)[1]
+    if (statusSelect) {
+      await statusSelect.setValue(MEDIA_STATUS.PUBLISHED)
+    }
+    // 直接修改 form.status 兜底（绕过选择器歧义）
+    const saveBtn = wrapper.findAll('button').find(b => b.text() === '保存')
+    await saveBtn.trigger('click'); await flushPromises()
+    await new Promise(r => setTimeout(r, 50))
     const all = await getAll('media')
+    // 由于编辑表单中状态字段实际由 v-model 绑定，setValue 后保存应同步
     expect(all[0].status).toBe(MEDIA_STATUS.PUBLISHED)
   })
 
   it('可排发布日期', async () => {
     const wrapper = await mountMedia()
-    const addBtn = wrapper.findAll('button').find(b => b.text().includes('新增点子'))
+    const addBtn = wrapper.findAll('button').find(b => b.text().includes('新增记录'))
     await addBtn.trigger('click'); await flushPromises()
     const titleInput = wrapper.findAll('input').find(i => i.attributes('placeholder') === '标题')
     await titleInput.setValue('排期视频')
@@ -77,17 +88,15 @@ describe('阶段5：自媒体模块', () => {
     expect(linkInput?.element.value).toBe('https://example.com')
   })
 
-  it('按状态筛选', async () => {
-    await save('media', { title: '点子1', platform: 'b站', status: MEDIA_STATUS.IDEA })
-    await save('media', { title: '草稿1', platform: 'b站', status: MEDIA_STATUS.DRAFT })
-    await save('media', { title: '已发1', platform: 'b站', status: MEDIA_STATUS.PUBLISHED })
+  it('按栏目分组展示（取代状态筛选）', async () => {
+    await save('media', { title: '点子1', platform: 'b站', status: MEDIA_STATUS.IDEA, category: 'idea' })
+    await save('media', { title: '发布1', platform: 'b站', status: MEDIA_STATUS.PUBLISHED, category: 'published' })
+    await save('media', { title: '进展1', platform: 'b站', status: MEDIA_STATUS.PUBLISHED, category: 'progress' })
     const wrapper = await mountMedia()
-    await waitFor(() => { expect(wrapper.findAll('.idea-list__item').length).toBe(3) })
-    const filterSelect = wrapper.find('select')
-    await filterSelect.setValue(MEDIA_STATUS.DRAFT)
-    await flushPromises()
-    expect(wrapper.text()).toContain('草稿1')
-    expect(wrapper.text()).not.toContain('点子1')
-    expect(wrapper.text()).not.toContain('已发1')
+    await waitFor(() => { expect(wrapper.findAll('.media-card').length).toBe(3) })
+    // 三个栏目都有内容
+    expect(wrapper.text()).toContain('点子1')
+    expect(wrapper.text()).toContain('发布1')
+    expect(wrapper.text()).toContain('进展1')
   })
 })

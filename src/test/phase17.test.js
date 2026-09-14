@@ -51,7 +51,7 @@ describe('问题4：新增项目/任务增加时间消耗填写项', () => {
     })
 
     it('列表显示耗时标记', () => {
-      expect(f).toContain('idea-list__time-cost')
+      expect(f).toContain('media-card__time')
       expect(f).toContain(CLOCK + '{{ item.timeCost }}h')
     })
   })
