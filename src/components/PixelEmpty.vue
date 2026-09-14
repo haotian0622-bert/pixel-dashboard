@@ -20,10 +20,11 @@ defineProps({
 }
 .pixel-empty__icon {
   display: block;
-  font-size: 2rem;
+  font-size: 2.5rem;
   margin-bottom: 0.5rem;
 }
 .pixel-empty__text {
-  font-size: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
 }
 </style>

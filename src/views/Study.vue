@@ -96,15 +96,15 @@ onMounted(async () => { await loadData() })
 <style scoped>
 .study { max-width: 800px; margin: 0 auto; }
 .study__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.study__stats { display: flex; gap: 1rem; font-size: 0.8rem; }
+.study__stats { display: flex; gap: 1rem; font-size: 1.05rem; font-weight: 600; }
 .study__form { border: 3px solid var(--border); padding: 0.75rem; margin-bottom: 1rem; background: var(--bg); display: flex; flex-direction: column; gap: 0.5rem; }
 .study__actions { display: flex; gap: 0.5rem; }
 .topic-list { display: flex; flex-direction: column; gap: 0.75rem; }
 .topic-list__item { border: 3px solid var(--border); padding: 0.75rem; background: var(--bg); cursor: pointer; }
 .topic-list__item:hover { background: var(--panel); }
 .topic-list__info { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
-.topic-list__name { font-size: 0.9rem; font-weight: bold; }
-.topic-list__goal { font-size: 0.75rem; color: var(--ochre); flex: 1; }
-.topic-list__status { font-size: 0.75rem; }
+.topic-list__name { font-size: 1.15rem; font-weight: bold; }
+.topic-list__goal { font-size: 1.05rem; font-weight: 700; color: var(--ochre); flex: 1; }
+.topic-list__status { font-size: 1.05rem; font-weight: 700; }
 .topic-list__progress { display: flex; align-items: center; }
 </style>

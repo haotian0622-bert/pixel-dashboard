@@ -95,7 +95,7 @@ async function doClear() {
 <style scoped>
 .settings { max-width: 600px; margin: 0 auto; }
 .settings__section { margin-bottom: 1.5rem; }
-.settings__section h3 { font-size: 0.9rem; margin-bottom: 0.5rem; }
+.settings__section h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
 .settings__theme { display: flex; gap: 0.5rem; }
 .settings__data { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
 </style>

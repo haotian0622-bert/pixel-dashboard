@@ -37,8 +37,9 @@ const filledCount = computed(() => {
   display: flex;
   align-items: center;
   gap: 2px;
-  font-family: 'Zpix', 'Courier New', monospace;
-  font-size: 1rem;
+  font-family: 'ArkPixel', 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 1.5rem;
   letter-spacing: 1px;
 }
 .pixel-progress__segment--filled {
@@ -50,7 +51,8 @@ const filledCount = computed(() => {
 }
 .pixel-progress__label {
   margin-left: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
   opacity: 0.7;
 }
 </style>

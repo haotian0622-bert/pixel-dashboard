@@ -161,22 +161,22 @@ onMounted(async () => {
 <style scoped>
 .fitness { max-width: 800px; margin: 0 auto; }
 .fitness__section { margin-bottom: 1.5rem; }
-.fitness__section h3 { font-size: 0.9rem; margin-bottom: 0.5rem; }
+.fitness__section h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
 .fitness__schedule { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; }
 .fitness__day { border: 3px solid var(--border); background: var(--bg); padding: 0.5rem; text-align: center; min-height: 80px; }
 .fitness__day--today { border-color: var(--accent); background: var(--panel); }
-.fitness__day-header { font-size: 0.75rem; font-weight: bold; margin-bottom: 0.25rem; }
-.fitness__day-content { font-size: 0.7rem; }
+.fitness__day-header { font-size: 1.05rem; font-weight: bold; margin-bottom: 0.25rem; }
+.fitness__day-content { font-size: 1rem; font-weight: 600; }
 .fitness__day-name { display: block; margin-bottom: 0.25rem; }
 .fitness__exercises { display: flex; flex-direction: column; gap: 0.1rem; }
-.fitness__exercise { font-size: 0.65rem; color: var(--ochre); }
-.fitness__day-add { padding: 0.2rem 0.4rem; font-size: 0.65rem; }
-.fitness__day-edit { padding: 0.1rem 0.3rem; font-size: 0.6rem; margin-top: 0.25rem; }
+.fitness__exercise { font-size: 0.9rem; font-weight: 700; color: var(--ochre); }
+.fitness__day-add { padding: 0.2rem 0.4rem; font-size: 0.9rem; font-weight: 700; }
+.fitness__day-edit { padding: 0.1rem 0.3rem; font-size: 0.85rem; font-weight: 700; margin-top: 0.25rem; }
 .fitness__checkin { display: flex; align-items: center; gap: 1rem; }
-.fitness__streak { font-size: 0.85rem; color: var(--olive); }
+.fitness__streak { font-size: 1.1rem; font-weight: 700; color: var(--olive); }
 .fitness__body-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 .fitness__body-list { display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.5rem; }
-.fitness__body-item { display: flex; gap: 1rem; font-size: 0.8rem; padding: 0.25rem; border-bottom: 1px solid var(--border); }
+.fitness__body-item { display: flex; gap: 1rem; font-size: 1.05rem; font-weight: 600; padding: 0.25rem; border-bottom: 1px solid var(--border); }
 .fitness__edit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .fitness__edit-form { min-width: 400px; max-width: 600px; }
 .fitness__ex-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }

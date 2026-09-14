@@ -19,7 +19,8 @@
   padding: 0.5rem 0.75rem;
   background: var(--text);
   color: var(--bg);
-  font-size: 0.85rem;
+  font-size: 1.15rem;
+  font-weight: 700;
   border-bottom: 4px double var(--border);
 }
 
@@ -48,7 +49,8 @@
   background: var(--panel);
   color: var(--text);
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
   box-shadow: 2px 2px 0 var(--shadow);
   transition: transform 0.05s, box-shadow 0.05s;
@@ -76,7 +78,8 @@
   background: var(--bg);
   color: var(--text);
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
   outline: none;
 }
 
@@ -108,7 +111,8 @@
 .pixel-progress {
   display: flex;
   gap: 2px;
-  font-family: 'Zpix', 'Courier New', monospace;
+  font-family: 'ArkPixel', 'Courier New', monospace;
+  font-weight: 700;
   letter-spacing: 2px;
 }
 
@@ -156,7 +160,8 @@
 
 .sidebar-nav__group-title {
   padding: 0.25rem 1rem;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 700;
   color: var(--ochre);
   text-transform: uppercase;
 }
@@ -166,7 +171,8 @@
   align-items: center;
   padding: 0.4rem 1rem;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--text);
 }
 
@@ -176,7 +182,7 @@
 
 .sidebar-nav__item--active {
   background: var(--bg);
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .sidebar-nav__item--active::before {

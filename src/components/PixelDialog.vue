@@ -50,7 +50,8 @@ defineEmits(['confirm', 'cancel'])
 }
 .pixel-dialog__body {
   padding: 1.5rem;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 .pixel-dialog__footer {
   display: flex;

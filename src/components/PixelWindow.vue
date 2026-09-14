@@ -29,7 +29,8 @@ defineProps({
   padding: 0.4rem 0.75rem;
   background: var(--text);
   color: var(--bg);
-  font-size: 0.85rem;
+  font-size: 1.15rem;
+  font-weight: 700;
 }
 .pixel-window__titlebar-icon {
   margin-right: 0.5rem;

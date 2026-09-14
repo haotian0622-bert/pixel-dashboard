@@ -431,7 +431,7 @@ describe('阶段13：全量验收（对照PRD验收标准）', () => {
 
     it('全像素中文字体显示', () => {
       const base = readFileSync(resolve(process.cwd(), 'src/styles/base.css'), 'utf-8')
-      expect(base).toContain("'Zpix'")
+      expect(base).toContain("'ArkPixel'")
       expect(base).toContain('@font-face')
     })
 

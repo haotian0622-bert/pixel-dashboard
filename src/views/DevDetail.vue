@@ -194,14 +194,14 @@ onMounted(async () => {
 .dev-detail__info { margin: 1rem 0; display: flex; flex-direction: column; gap: 0.5rem; }
 .dev-detail__row { display: flex; align-items: center; gap: 0.5rem; }
 .dev-detail__section { margin-top: 1.5rem; }
-.dev-detail__section h3 { font-size: 0.9rem; margin-bottom: 0.5rem; }
+.dev-detail__section h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
 .dev-detail__form { border: 3px solid var(--border); padding: 0.75rem; margin: 0.5rem 0; background: var(--bg); display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 .item-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.item-list__item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem; border-bottom: 2px solid var(--border); font-size: 0.85rem; }
+.item-list__item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem; border-bottom: 2px solid var(--border); font-size: 1.1rem; font-weight: 600; }
 .item-list__item:last-child { border-bottom: none; }
 .item-list__item--column { flex-direction: column; align-items: stretch; }
 .item-list__header { display: flex; justify-content: space-between; align-items: center; }
 .item-list__title { flex: 1; }
-.item-list__date { font-size: 0.7rem; color: var(--ochre); }
-.item-list__code { font-size: 0.75rem; background: var(--bg); border: 2px solid var(--border); padding: 0.5rem; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+.item-list__date { font-size: 1rem; font-weight: 600; color: var(--ochre); }
+.item-list__code { font-size: 1.05rem; font-weight: 700; background: var(--bg); border: 2px solid var(--border); padding: 0.5rem; overflow: auto; white-space: pre-wrap; word-break: break-all; }
 </style>

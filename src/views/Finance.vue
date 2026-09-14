@@ -163,30 +163,30 @@ onMounted(async () => { await loadRecords() })
 <style scoped>
 .finance { max-width: 800px; margin: 0 auto; }
 .finance__header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
-.finance__month { font-size: 0.9rem; font-weight: bold; min-width: 80px; text-align: center; }
+.finance__month { font-size: 1.15rem; font-weight: bold; min-width: 80px; text-align: center; }
 .finance__summary { display: flex; gap: 1rem; margin-bottom: 1rem; }
 .finance__summary-item { flex: 1; text-align: center; border: 3px solid var(--border); padding: 0.5rem; background: var(--bg); }
-.finance__summary-label { display: block; font-size: 0.7rem; color: var(--ochre); }
-.finance__summary-value { display: block; font-size: 1rem; }
+.finance__summary-label { display: block; font-size: 1rem; font-weight: 600; color: var(--ochre); }
+.finance__summary-value { display: block; font-size: 1.2rem; }
 .finance__summary-value--income { color: var(--olive); }
 .finance__summary-value--expense { color: var(--accent); }
 .finance__categories { margin-bottom: 1rem; }
-.finance__categories h4 { font-size: 0.85rem; margin-bottom: 0.5rem; }
-.finance__cat-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; margin-bottom: 0.25rem; }
+.finance__categories h4 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+.finance__cat-item { display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600; margin-bottom: 0.25rem; }
 .finance__form { border: 3px solid var(--border); padding: 0.75rem; margin-bottom: 1rem; background: var(--bg); display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 .record-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.record-list__item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem; border-bottom: 2px solid var(--border); font-size: 0.85rem; }
+.record-list__item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem; border-bottom: 2px solid var(--border); font-size: 1.1rem; font-weight: 600; }
 .record-list__item:last-child { border-bottom: none; }
-.record-list__date { font-size: 0.7rem; color: var(--ochre); min-width: 80px; }
-.record-list__type { font-size: 0.75rem; min-width: 30px; }
+.record-list__date { font-size: 1rem; font-weight: 600; color: var(--ochre); min-width: 80px; }
+.record-list__type { font-size: 1.05rem; font-weight: 700; min-width: 30px; }
 .record-list__type--income { color: var(--olive); }
 .record-list__type--expense { color: var(--accent); }
-.record-list__cat { font-size: 0.75rem; color: var(--ochre); }
+.record-list__cat { font-size: 1.05rem; font-weight: 700; color: var(--ochre); }
 .record-list__amount { font-weight: bold; min-width: 60px; }
 .record-list__amount--income { color: var(--olive); }
 .record-list__amount--expense { color: var(--accent); }
-.record-list__note { font-size: 0.7rem; color: var(--ochre); flex: 1; }
-.record-list .pixel-btn { padding: 0.2rem 0.5rem; font-size: 0.7rem; }
+.record-list__note { font-size: 1rem; font-weight: 600; color: var(--ochre); flex: 1; }
+.record-list .pixel-btn { padding: 0.2rem 0.5rem; font-size: 1rem; font-weight: 600; }
 @media (max-width: 768px) {
   .finance__summary { flex-direction: column; }
   .finance__form { flex-direction: column; align-items: stretch; }

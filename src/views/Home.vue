@@ -268,10 +268,12 @@ onMounted(async () => {
   text-align: center;
 }
 .home__date {
-  font-size: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
 }
 .home__status {
-  font-size: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--ochre);
   margin-top: 0.25rem;
 }
@@ -283,7 +285,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1rem;
-  font-size: 0.85rem;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 .today-plan__list {
   display: flex;
@@ -294,9 +297,10 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.4rem 0.5rem;
+  padding: 0.5rem 0.5rem;
   border-bottom: 2px solid var(--border);
-  font-size: 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 600;
 }
 .today-plan__item:last-child {
   border-bottom: none;
@@ -305,12 +309,14 @@ onMounted(async () => {
   flex: 1;
 }
 .today-plan__item-source {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--ochre);
   opacity: 0.7;
 }
 .today-plan__item-priority {
-  font-size: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 700;
   color: var(--accent);
 }
 .memos__grid {
@@ -326,7 +332,8 @@ onMounted(async () => {
   position: relative;
 }
 .memo-card__content {
-  font-size: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
   white-space: pre-wrap;
   word-break: break-all;
   padding-right: 1.5rem;
@@ -336,7 +343,8 @@ onMounted(async () => {
   top: 0.25rem;
   right: 0.25rem;
   padding: 0.1rem 0.4rem;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 .memo-new {
   margin-bottom: 1rem;
@@ -356,22 +364,25 @@ onMounted(async () => {
   transform: translate(2px, -2px);
 }
 .summary-card__header {
-  padding: 0.3rem 0.5rem;
-  font-size: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 1rem;
+  font-weight: 700;
   color: var(--bg);
 }
 .summary-card__body {
-  padding: 0.5rem;
+  padding: 0.6rem;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
 }
 .summary-card__number {
-  font-size: 1.1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: var(--text);
 }
 .summary-card__text {
-  font-size: 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--ochre);
 }
 @media (max-width: 768px) {

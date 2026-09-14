@@ -24,12 +24,13 @@ defineEmits(['click'])
 <style scoped>
 .pixel-btn {
   display: inline-block;
-  padding: 0.4rem 1rem;
+  padding: 0.5rem 1.2rem;
   border: 3px solid var(--border);
   background: var(--panel);
   color: var(--text);
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
   box-shadow: 2px 2px 0 var(--shadow);
   transition: transform 0.05s, box-shadow 0.05s;

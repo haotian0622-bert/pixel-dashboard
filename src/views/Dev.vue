@@ -107,8 +107,8 @@ onMounted(async () => {
 .project-list__item { border: 3px solid var(--border); padding: 0.75rem; background: var(--bg); cursor: pointer; }
 .project-list__item:hover { background: var(--panel); }
 .project-list__info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.project-list__name { font-size: 0.9rem; font-weight: bold; }
-.project-list__status { font-size: 0.75rem; }
-.project-list__desc { font-size: 0.8rem; color: var(--ochre); margin-bottom: 0.5rem; }
+.project-list__name { font-size: 1.15rem; font-weight: bold; }
+.project-list__status { font-size: 1.05rem; font-weight: 700; }
+.project-list__desc { font-size: 1.05rem; font-weight: 600; color: var(--ochre); margin-bottom: 0.5rem; }
 .project-list__progress { display: flex; align-items: center; }
 </style>

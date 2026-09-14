@@ -165,22 +165,22 @@ onMounted(async () => { await loadList() })
 .company__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 .company__filters { display: flex; gap: 0.5rem; }
 .company__form { border: 3px solid var(--border); padding: 0.75rem; margin-bottom: 1rem; background: var(--bg); display: flex; flex-direction: column; gap: 0.5rem; }
-.company__row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; flex-wrap: wrap; }
+.company__row { display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; font-weight: 600; flex-wrap: wrap; }
 .company__actions { display: flex; gap: 0.5rem; }
 .company__item { border-bottom: 2px solid var(--border); padding: 0.5rem; }
 .company__item:last-child { border-bottom: none; }
-.company__item-main { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.85rem; }
+.company__item-main { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 1.1rem; font-weight: 600; }
 .company__item-title { flex: 1; }
-.company__item-cat { font-size: 0.7rem; color: var(--ochre); }
-.company__item-priority { font-size: 0.75rem; color: var(--accent); }
-.company__item-deadline { font-size: 0.7rem; color: var(--ochre); }
-.company__item-status { font-size: 0.75rem; font-weight: bold; }
+.company__item-cat { font-size: 1rem; font-weight: 600; color: var(--ochre); }
+.company__item-priority { font-size: 1.05rem; font-weight: 700; color: var(--accent); }
+.company__item-deadline { font-size: 1rem; font-weight: 600; color: var(--ochre); }
+.company__item-status { font-size: 1.05rem; font-weight: bold; }
 .company__item-actions { display: flex; gap: 0.25rem; }
-.company__item-actions .pixel-btn { padding: 0.2rem 0.5rem; font-size: 0.7rem; }
+.company__item-actions .pixel-btn { padding: 0.2rem 0.5rem; font-size: 1rem; font-weight: 600; }
 .company__notes { margin-top: 0.5rem; padding: 0.5rem; border: 2px solid var(--border); background: var(--bg); }
-.company__notes h4 { font-size: 0.8rem; margin-bottom: 0.5rem; }
+.company__notes h4 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; }
 .note-list { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.5rem; }
-.note-list__item { font-size: 0.75rem; display: flex; gap: 0.5rem; }
+.note-list__item { font-size: 1.05rem; font-weight: 700; display: flex; gap: 0.5rem; }
 .note-list__time { color: var(--ochre); flex-shrink: 0; }
 .note-input { display: flex; gap: 0.5rem; }
 .note-input .pixel-input { flex: 1; }
