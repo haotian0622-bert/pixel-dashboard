@@ -70,6 +70,21 @@ export const MEDIA_CATEGORY_LABELS = {
   adjust: '后续调整'
 }
 
+// 视频发布后数据指标（统计快照）
+export const MEDIA_METRIC = {
+  VIEWS: 'views',       // 播放量
+  LIKES: 'likes',       // 点赞
+  COMMENTS: 'comments', // 评论
+  SHARES: 'shares'      // 转发
+}
+
+export const MEDIA_METRIC_LABELS = {
+  views: '播放量',
+  likes: '点赞',
+  comments: '评论',
+  shares: '转发'
+}
+
 // 开发项目状态
 export const DEV_PROJECT_STATUS = {
   PLANNING: 'planning',  // 规划中

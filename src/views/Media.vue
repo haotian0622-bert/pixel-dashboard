@@ -2,7 +2,35 @@
   <div class="media">
     <PixelWindow title="自媒体" icon="✦">
       <div class="media__tabs">
+        <button
+          class="pixel-btn media__stats-toggle"
+          :class="{ 'media__stats-toggle--active': showStatsPanel }"
+          @click="showStatsPanel = !showStatsPanel"
+        >📊 数据看板</button>
         <button class="pixel-btn plan__add-btn" @click="showForm = !showForm">+ 新增记录</button>
+      </div>
+
+      <!-- 发布后数据统计看板 -->
+      <div v-if="showStatsPanel" class="media__stats-panel">
+        <div class="media__metrics">
+          <button
+            v-for="(label, key) in metricLabels"
+            :key="key"
+            class="pixel-btn media__metric-btn"
+            :class="{ 'media__metric-btn--active': metric === key }"
+            @click="metric = key"
+          >{{ label }}</button>
+        </div>
+        <div class="media__charts">
+          <div class="media__chart media__chart--line">
+            <div class="media__chart-title">数据趋势 · {{ metricLabels[metric] }}</div>
+            <PixelChart type="line" :series="lineSeries" />
+          </div>
+          <div class="media__chart media__chart--bar">
+            <div class="media__chart-title">各视频最新对比 · {{ metricLabels[metric] }}</div>
+            <PixelChart type="bar" :series="barSeries" />
+          </div>
+        </div>
       </div>
 
       <!-- 新增表单 -->
@@ -71,10 +99,37 @@
                 <span v-if="item.timeSlot && item.timeSlot !== 'any'" class="media-card__slot">{{ timeSlotSymbols[item.timeSlot] }}</span>
                 <span v-if="item.publishDate" class="media-card__date">{{ item.publishDate }}</span>
                 <span v-if="item.link" class="media-card__link" @click="openLink(item.link)">链接</span>
+                <span v-if="latestOf(item)" class="media-card__stats">
+                  ▶{{ formatStat(latestOf(item).views) }} ♥{{ formatStat(latestOf(item).likes) }}
+                </span>
               </div>
               <div class="media-card__actions">
+                <button class="pixel-btn" @click="toggleStatForm(item)">数据</button>
                 <button class="pixel-btn" @click="editItem(item)">改</button>
                 <button class="pixel-btn pixel-btn--cancel" @click="deleteItem(item)">删</button>
+              </div>
+              <!-- 发布后数据录入 -->
+              <div v-if="statEditingId === item.id" class="media-card__stat-form" @click.stop>
+                <div class="media-card__stat-row">
+                  <label>日期:</label>
+                  <input type="date" class="pixel-input" v-model="statForm.date" />
+                </div>
+                <div class="media-card__stat-row">
+                  <label>播放:</label>
+                  <input type="number" min="0" class="pixel-input" v-model.number="statForm.views" placeholder="播放量" />
+                  <label>点赞:</label>
+                  <input type="number" min="0" class="pixel-input" v-model.number="statForm.likes" placeholder="点赞" />
+                </div>
+                <div class="media-card__stat-row">
+                  <label>评论:</label>
+                  <input type="number" min="0" class="pixel-input" v-model.number="statForm.comments" placeholder="评论" />
+                  <label>转发:</label>
+                  <input type="number" min="0" class="pixel-input" v-model.number="statForm.shares" placeholder="转发" />
+                </div>
+                <div class="media-card__stat-actions">
+                  <button class="pixel-btn pixel-btn--confirm" @click="saveStats(item)">保存数据</button>
+                  <button class="pixel-btn pixel-btn--cancel" @click="statEditingId = null">取消</button>
+                </div>
               </div>
             </li>
             <li v-if="itemsByCategory[cat.key].length === 0" class="media-card__empty">
@@ -92,16 +147,26 @@ import { ref, computed, onMounted } from 'vue'
 import PixelWindow from '@/components/PixelWindow.vue'
 import PixelInput from '@/components/PixelInput.vue'
 import PixelSelect from '@/components/PixelSelect.vue'
+import PixelChart from '@/components/PixelChart.vue'
 import { getAll, save, remove } from '@/db/dao'
 import {
   MEDIA_STATUS,
   MEDIA_STATUS_LABELS,
   MEDIA_CATEGORY,
   MEDIA_CATEGORY_LABELS,
+  MEDIA_METRIC,
+  MEDIA_METRIC_LABELS,
   TIME_SLOT,
   TIME_SLOT_LABELS,
   TIME_SLOT_SYMBOLS
 } from '@/utils/constants'
+import {
+  latestStats,
+  upsertStats,
+  buildBarData,
+  buildLineSeries,
+  formatStat
+} from '@/utils/stats'
 import { today } from '@/utils/date'
 
 const list = ref([])
@@ -109,6 +174,13 @@ const showForm = ref(false)
 const editingId = ref(null)
 const dragId = ref(null)
 const dragOverCat = ref(null)
+
+// 数据看板
+const showStatsPanel = ref(false)
+const metric = ref(MEDIA_METRIC.VIEWS)
+const metricLabels = MEDIA_METRIC_LABELS
+const statEditingId = ref(null)
+const statForm = ref({ date: today(), views: 0, likes: 0, comments: 0, shares: 0 })
 
 const form = ref({
   title: '',
@@ -149,8 +221,41 @@ const itemsByCategory = computed(() => {
   return out
 })
 
+// 只有带数据快照的记录才进图表
+const chartItems = computed(() =>
+  list.value.filter(i => Array.isArray(i.stats) && i.stats.length > 0)
+)
+const lineSeries = computed(() => buildLineSeries(chartItems.value, metric.value))
+const barSeries = computed(() => [
+  { name: MEDIA_METRIC_LABELS[metric.value], points: buildBarData(chartItems.value, metric.value) }
+])
+
 async function loadList() {
   list.value = await getAll('media')
+}
+
+function latestOf(item) {
+  return latestStats(item)
+}
+
+function toggleStatForm(item) {
+  if (statEditingId.value === item.id) {
+    statEditingId.value = null
+    return
+  }
+  statEditingId.value = item.id
+  const latest = latestStats(item)
+  statForm.value = latest
+    ? { date: today(), views: latest.views, likes: latest.likes, comments: latest.comments, shares: latest.shares }
+    : { date: today(), views: 0, likes: 0, comments: 0, shares: 0 }
+}
+
+async function saveStats(item) {
+  if (!statForm.value.date) statForm.value.date = today()
+  const stats = upsertStats(item.stats, statForm.value)
+  await save('media', { ...item, stats })
+  statEditingId.value = null
+  await loadList()
 }
 
 function resetForm() {
@@ -332,5 +437,75 @@ onMounted(async () => {
   font-weight: 600;
   padding: 1rem 0.5rem;
   border: 2px dashed var(--border);
+}
+
+/* ===== 数据看板 ===== */
+.media__stats-toggle { font-weight: 700; }
+.media__stats-toggle--active {
+  background: var(--accent);
+  color: var(--bg);
+}
+.media__stats-panel {
+  border: 3px solid var(--border);
+  background: var(--panel);
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+.media__metrics {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+.media__metric-btn {
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.35rem 0.9rem;
+}
+.media__metric-btn--active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--text);
+}
+.media__charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.media__chart-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  color: var(--text);
+}
+.media-card__stats {
+  color: var(--c-media);
+  font-size: 0.95rem;
+}
+.media-card__stat-form {
+  margin-top: 0.4rem;
+  padding: 0.5rem;
+  border: 2px solid var(--border);
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  cursor: default;
+}
+.media-card__stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.media-card__stat-row .pixel-input { max-width: 110px; }
+.media-card__stat-actions { display: flex; gap: 0.4rem; }
+.media-card__stat-actions .pixel-btn { padding: 0.2rem 0.6rem; font-size: 0.95rem; }
+
+@media (max-width: 900px) {
+  .media__charts { grid-template-columns: 1fr; }
 }
 </style>
