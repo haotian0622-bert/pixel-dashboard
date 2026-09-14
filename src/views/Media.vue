@@ -21,6 +21,10 @@
           <input type="number" class="pixel-input" v-model.number="form.timeCost" min="0" step="0.5" style="max-width: 90px" placeholder="0" />
         </div>
         <div class="media__row">
+          <label>时段:</label>
+          <PixelSelect v-model="form.timeSlot" :options="timeSlotOptions" />
+        </div>
+        <div class="media__row">
           <label>状态:</label>
           <select class="pixel-select" v-model="form.status">
             <option v-for="(label, key) in statusLabels" :key="key" :value="key">{{ label }}</option>
@@ -45,6 +49,7 @@
             <span class="idea-list__status" :style="{ color: statusColor(item.status) }">
               {{ statusLabels[item.status] }}
             </span>
+            <span v-if="item.timeSlot && item.timeSlot !== 'any'" class="idea-list__time-slot">{{ timeSlotSymbols[item.timeSlot] }}</span>
             <span v-if="item.timeCost" class="idea-list__time-cost">⏱{{ item.timeCost }}h</span>
             <span v-if="item.publishDate" class="idea-list__date">{{ item.publishDate }}</span>
           </div>
@@ -66,8 +71,9 @@ import { ref, computed, onMounted } from 'vue'
 import PixelWindow from '@/components/PixelWindow.vue'
 import PixelInput from '@/components/PixelInput.vue'
 import PixelEmpty from '@/components/PixelEmpty.vue'
+import PixelSelect from '@/components/PixelSelect.vue'
 import { getAll, save, remove } from '@/db/dao'
-import { MEDIA_STATUS, MEDIA_STATUS_LABELS } from '@/utils/constants'
+import { MEDIA_STATUS, MEDIA_STATUS_LABELS, TIME_SLOT, TIME_SLOT_LABELS, TIME_SLOT_SYMBOLS } from '@/utils/constants'
 import { today } from '@/utils/date'
 
 const list = ref([])
@@ -82,10 +88,17 @@ const form = ref({
   publishDate: '',
   link: '',
   note: '',
-  timeCost: 0
+  timeCost: 0,
+  timeSlot: TIME_SLOT.ANY
 })
 
 const statusLabels = MEDIA_STATUS_LABELS
+const timeSlotOptions = [
+  { value: TIME_SLOT.DAY, label: TIME_SLOT_LABELS[TIME_SLOT.DAY] },
+  { value: TIME_SLOT.NIGHT, label: TIME_SLOT_LABELS[TIME_SLOT.NIGHT] },
+  { value: TIME_SLOT.ANY, label: TIME_SLOT_LABELS[TIME_SLOT.ANY] }
+]
+const timeSlotSymbols = TIME_SLOT_SYMBOLS
 
 const filteredList = computed(() => {
   if (!filterStatus.value) return list.value
@@ -109,17 +122,17 @@ async function loadList() {
 function resetForm() {
   form.value = {
     title: '', platform: '', status: MEDIA_STATUS.IDEA,
-    publishDate: '', link: '', note: '', timeCost: 0
+    publishDate: '', link: '', note: '', timeCost: 0, timeSlot: TIME_SLOT.ANY
   }
 }
 
 async function saveIdea() {
   if (!form.value.title.trim()) return
   if (editingId.value) {
-    await save('media', { ...form.value, id: editingId.value, timeCost: Number(form.value.timeCost) || 0 })
+    await save('media', { ...form.value, id: editingId.value, timeCost: Number(form.value.timeCost) || 0, timeSlot: form.value.timeSlot || TIME_SLOT.ANY })
     editingId.value = null
   } else {
-    await save('media', { ...form.value, timeCost: Number(form.value.timeCost) || 0 })
+    await save('media', { ...form.value, timeCost: Number(form.value.timeCost) || 0, timeSlot: form.value.timeSlot || TIME_SLOT.ANY })
   }
   resetForm()
   showForm.value = false
@@ -163,6 +176,7 @@ onMounted(async () => {
 .idea-list__status { font-size: 1.05rem; font-weight: bold; }
 .idea-list__date { font-size: 1rem; font-weight: 600; color: var(--ochre); }
 .idea-list__time-cost { font-size: 0.95rem; font-weight: 700; color: var(--olive); white-space: nowrap; }
+.idea-list__time-slot { font-size: 1.05rem; font-weight: 700; color: var(--c-dev); white-space: nowrap; }
 .idea-list__actions { display: flex; gap: 0.25rem; align-items: center; }
 .idea-list__actions .pixel-btn { padding: 0.2rem 0.5rem; font-size: 1rem; font-weight: 600; }
 .idea-list__status-select { padding: 0.2rem; font-size: 1rem; font-weight: 600; }

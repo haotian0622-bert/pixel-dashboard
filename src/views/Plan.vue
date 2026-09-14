@@ -47,6 +47,8 @@
               style="max-width: 90px"
               placeholder="0"
             />
+            <label>时段:</label>
+            <PixelSelect v-model="newTask.timeSlot" :options="timeSlotOptions" />
           </div>
           <PixelInput
             v-model="newTask.note"
@@ -87,6 +89,9 @@
               <span class="task-list__source">{{ sourceLabels[item.source] }}</span>
               <span v-if="item.priority" class="task-list__priority">
                 {{ prioritySymbols[item.priority] }}
+              </span>
+              <span v-if="item.timeSlot && item.timeSlot !== 'any'" class="task-list__time-slot">
+                {{ timeSlotSymbols[item.timeSlot] }}
               </span>
               <span v-if="item.timeCost" class="task-list__time-cost">
                 ⏱{{ item.timeCost }}h
@@ -162,6 +167,8 @@
               style="max-width: 90px"
               placeholder="0"
             />
+            <label>时段:</label>
+            <PixelSelect v-model="editingTask.timeSlot" :options="timeSlotOptions" />
           </div>
           <PixelInput v-model="editingTask.note" type="textarea" placeholder="备注" :rows="2" />
           <div class="plan__add-actions">
@@ -189,7 +196,10 @@ import {
   SOURCE_COLOR_VAR,
   PRIORITY_SYMBOLS,
   PRIORITY,
-  PRIORITY_LABELS
+  PRIORITY_LABELS,
+  TIME_SLOT,
+  TIME_SLOT_LABELS,
+  TIME_SLOT_SYMBOLS
 } from '@/utils/constants'
 
 const view = ref('today') // 'today' | 'week'
@@ -208,7 +218,8 @@ const newTask = ref({
   date: todayStr,
   priority: PRIORITY.MEDIUM,
   note: '',
-  timeCost: 0
+  timeCost: 0,
+  timeSlot: TIME_SLOT.ANY
 })
 
 const priorityOptions = [
@@ -217,9 +228,16 @@ const priorityOptions = [
   { value: PRIORITY.LOW, label: PRIORITY_LABELS.low }
 ]
 
+const timeSlotOptions = [
+  { value: TIME_SLOT.ANY, label: TIME_SLOT_LABELS.any },
+  { value: TIME_SLOT.DAY, label: TIME_SLOT_LABELS.day },
+  { value: TIME_SLOT.NIGHT, label: TIME_SLOT_LABELS.night }
+]
+
 const sourceLabels = SOURCE_LABELS
 const sourceColorVar = SOURCE_COLOR_VAR
 const prioritySymbols = PRIORITY_SYMBOLS
+const timeSlotSymbols = TIME_SLOT_SYMBOLS
 
 const currentViewTitle = computed(() => {
   if (view.value === 'today') return '今日计划'
@@ -271,10 +289,11 @@ async function saveNewTask() {
     priority: newTask.value.priority,
     note: newTask.value.note,
     timeCost: Number(newTask.value.timeCost) || 0,
+    timeSlot: newTask.value.timeSlot || TIME_SLOT.ANY,
     done: false,
     source: 'manual'
   })
-  newTask.value = { title: '', date: todayStr, priority: PRIORITY.MEDIUM, note: '', timeCost: 0 }
+  newTask.value = { title: '', date: todayStr, priority: PRIORITY.MEDIUM, note: '', timeCost: 0, timeSlot: TIME_SLOT.ANY }
   showAddForm.value = false
   await loadTodayItems()
   await loadWeekDays()
@@ -293,6 +312,7 @@ async function saveEdit() {
     priority: editingTask.value.priority,
     note: editingTask.value.note || '',
     timeCost: Number(editingTask.value.timeCost) || 0,
+    timeSlot: editingTask.value.timeSlot || TIME_SLOT.ANY,
     done: editingTask.value.done,
     source: 'manual'
   })
@@ -390,6 +410,12 @@ onMounted(async () => {
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--olive);
+  white-space: nowrap;
+}
+.task-list__time-slot {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--c-dev);
   white-space: nowrap;
 }
 .task-list__actions {

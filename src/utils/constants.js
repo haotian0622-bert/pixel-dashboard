@@ -21,6 +21,25 @@ export const PRIORITY_SYMBOLS = {
   low: '·'
 }
 
+// 时段（白天/晚上）
+export const TIME_SLOT = {
+  DAY: 'day',       // 白天
+  NIGHT: 'night',   // 晚上
+  ANY: 'any'        // 不限
+}
+
+export const TIME_SLOT_LABELS = {
+  day: '白天',
+  night: '晚上',
+  any: '不限'
+}
+
+export const TIME_SLOT_SYMBOLS = {
+  day: '\u2600',    // ☀
+  night: '\u263D',  // ☽
+  any: '\u00B7'     // ·
+}
+
 // 自媒体点子状态
 export const MEDIA_STATUS = {
   IDEA: 'idea',       // 点子

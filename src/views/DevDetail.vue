@@ -47,6 +47,8 @@
           </select>
           <label>耗时(h):</label>
           <input type="number" class="pixel-input" v-model.number="taskForm.timeCost" min="0" step="0.5" style="max-width: 90px" placeholder="0" />
+          <label>时段:</label>
+          <PixelSelect v-model="taskForm.timeSlot" :options="timeSlotOptions" />
           <button class="pixel-btn pixel-btn--confirm" @click="saveTask">保存</button>
         </div>
         <ul v-if="tasks.length" class="item-list">
@@ -55,6 +57,7 @@
               @click="toggleTask(t)">{{ t.done ? '✔' : '□' }}</span>
             <span class="item-list__title" :class="{ 'task-done': t.done }">{{ t.title }}</span>
             <span v-if="t.dueDate" class="item-list__date">{{ t.dueDate }}</span>
+            <span v-if="t.timeSlot && t.timeSlot !== 'any'" class="item-list__time-slot">{{ timeSlotSymbols[t.timeSlot] }}</span>
             <span v-if="t.timeCost" class="item-list__time-cost">⏱{{ t.timeCost }}h</span>
             <button class="pixel-btn pixel-btn--cancel" @click="deleteTask(t)">删</button>
           </li>
@@ -89,12 +92,16 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import PixelWindow from '@/components/PixelWindow.vue'
 import PixelInput from '@/components/PixelInput.vue'
+import PixelSelect from '@/components/PixelSelect.vue'
 import { get, save, remove, query, patch } from '@/db/dao'
 import {
   DEV_PROJECT_STATUS_LABELS,
   MILESTONE_STATUS,
   MILESTONE_STATUS_LABELS,
-  PRIORITY_LABELS
+  PRIORITY_LABELS,
+  TIME_SLOT,
+  TIME_SLOT_LABELS,
+  TIME_SLOT_SYMBOLS
 } from '@/utils/constants'
 
 const route = useRoute()
@@ -110,11 +117,18 @@ const showTaskForm = ref(false)
 const showSnippetForm = ref(false)
 
 const milestoneForm = ref({ name: '', dueDate: '', status: MILESTONE_STATUS.NOT_STARTED })
-const taskForm = ref({ title: '', dueDate: '', priority: 'medium', timeCost: 0 })
+const taskForm = ref({ title: '', dueDate: '', priority: 'medium', timeCost: 0, timeSlot: TIME_SLOT.ANY })
 const snippetForm = ref({ note: '', code: '' })
 
 const statusLabels = DEV_PROJECT_STATUS_LABELS
 const priorityLabels = PRIORITY_LABELS
+
+const timeSlotOptions = [
+  { value: TIME_SLOT.ANY, label: TIME_SLOT_LABELS.any },
+  { value: TIME_SLOT.DAY, label: TIME_SLOT_LABELS.day },
+  { value: TIME_SLOT.NIGHT, label: TIME_SLOT_LABELS.night }
+]
+const timeSlotSymbols = TIME_SLOT_SYMBOLS
 
 async function loadData() {
   project.value = await get('devProjects', projectId)
@@ -158,9 +172,10 @@ async function saveTask() {
     ...taskForm.value,
     projectId,
     done: false,
-    timeCost: Number(taskForm.value.timeCost) || 0
+    timeCost: Number(taskForm.value.timeCost) || 0,
+    timeSlot: taskForm.value.timeSlot || TIME_SLOT.ANY
   })
-  taskForm.value = { title: '', dueDate: '', priority: 'medium', timeCost: 0 }
+  taskForm.value = { title: '', dueDate: '', priority: 'medium', timeCost: 0, timeSlot: TIME_SLOT.ANY }
   showTaskForm.value = false
   await loadData()
 }
@@ -208,5 +223,6 @@ onMounted(async () => {
 .item-list__title { flex: 1; }
 .item-list__date { font-size: 1rem; font-weight: 600; color: var(--ochre); }
 .item-list__time-cost { font-size: 0.95rem; font-weight: 700; color: var(--olive); white-space: nowrap; }
+.item-list__time-slot { font-size: 1.05rem; font-weight: 700; color: var(--c-dev); white-space: nowrap; }
 .item-list__code { font-size: 1.05rem; font-weight: 700; background: var(--bg); border: 2px solid var(--border); padding: 0.5rem; overflow: auto; white-space: pre-wrap; word-break: break-all; }
 </style>

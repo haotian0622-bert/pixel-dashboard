@@ -32,7 +32,9 @@ export async function getTodayItems() {
       priority: t.priority || 'medium',
       done: !!t.done,
       date: t.date,
-      note: t.note || ''
+      note: t.note || '',
+      timeCost: t.timeCost || 0,
+      timeSlot: t.timeSlot || 'any'
     })
   }
 
@@ -48,7 +50,9 @@ export async function getTodayItems() {
         priority: 'high',
         done: m.status === MEDIA_STATUS.PUBLISHED,
         date: m.publishDate,
-        note: m.note || ''
+        note: m.note || '',
+        timeCost: m.timeCost || 0,
+        timeSlot: m.timeSlot || 'any'
       })
     }
   }
@@ -65,7 +69,9 @@ export async function getTodayItems() {
         priority: t.priority || 'medium',
         done: !!t.done,
         date: t.dueDate,
-        note: ''
+        note: '',
+        timeCost: t.timeCost || 0,
+        timeSlot: t.timeSlot || 'any'
       })
     }
   }
@@ -82,7 +88,9 @@ export async function getTodayItems() {
         priority: c.priority || 'medium',
         done: c.status === COMPANY_STATUS.DONE,
         date: c.deadline,
-        note: ''
+        note: '',
+        timeCost: c.timeCost || 0,
+        timeSlot: c.timeSlot || 'any'
       })
     }
   }
@@ -98,7 +106,9 @@ export async function getTodayItems() {
       priority: 'medium',
       done: false, // 打卡状态在 fitnessLogs 中查
       date: todayStr,
-      note: ''
+      note: '',
+      timeCost: 0,
+      timeSlot: 'any'
     })
   }
 
@@ -114,7 +124,9 @@ export async function getTodayItems() {
         priority: t.priority || 'medium',
         done: !!t.done,
         date: t.dueDate,
-        note: t.note || ''
+        note: t.note || '',
+        timeCost: t.timeCost || 0,
+        timeSlot: t.timeSlot || 'any'
       })
     }
   }

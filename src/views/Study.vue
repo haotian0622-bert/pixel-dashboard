@@ -14,6 +14,7 @@
         <PixelInput v-model="form.name" placeholder="主题名称" />
         <PixelInput v-model="form.goal" placeholder="一句话目标" />
         <label>耗时(h):</label><input type="number" class="pixel-input" v-model.number="form.timeCost" min="0" step="0.5" style="max-width: 90px" placeholder="0" />
+        <label>时段:</label><PixelSelect v-model="form.timeSlot" :options="timeSlotOptions" />
         <div class="study__actions">
           <button class="pixel-btn pixel-btn--confirm" @click="saveTopic">保存</button>
           <button class="pixel-btn pixel-btn--cancel" @click="showForm = false">取消</button>
@@ -27,6 +28,7 @@
             <span class="topic-list__name">{{ t.name }}</span>
             <span class="topic-list__goal">{{ t.goal }}</span>
             <span class="topic-list__status" :style="{ color: statusColor(t.status) }">{{ statusLabels[t.status] }}</span>
+            <span v-if="t.timeSlot && t.timeSlot !== 'any'" class="topic-list__time-slot">{{ timeSlotSymbols[t.timeSlot] }}</span>
             <span v-if="t.timeCost" class="topic-list__time-cost">⏱{{ t.timeCost }}h</span>
           </div>
           <div class="topic-list__progress">
@@ -43,20 +45,35 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import PixelWindow from '@/components/PixelWindow.vue'
 import PixelInput from '@/components/PixelInput.vue'
+import PixelSelect from '@/components/PixelSelect.vue'
 import PixelProgress from '@/components/PixelProgress.vue'
 import PixelEmpty from '@/components/PixelEmpty.vue'
 import { getAll, save, query } from '@/db/dao'
-import { STUDY_STATUS, STUDY_STATUS_LABELS } from '@/utils/constants'
+import {
+  STUDY_STATUS,
+  STUDY_STATUS_LABELS,
+  TIME_SLOT,
+  TIME_SLOT_LABELS,
+  TIME_SLOT_SYMBOLS
+} from '@/utils/constants'
 import { isThisWeek } from '@/utils/date'
 
 const router = useRouter()
 const topics = ref([])
 const showForm = ref(false)
-const form = ref({ name: '', goal: '', timeCost: 0 })
+const form = ref({ name: '', goal: '', timeCost: 0, timeSlot: TIME_SLOT.ANY })
 const logs = ref([])
 const taskCache = ref({})
 
 const statusLabels = STUDY_STATUS_LABELS
+
+const timeSlotOptions = [
+  { value: TIME_SLOT.ANY, label: TIME_SLOT_LABELS.any },
+  { value: TIME_SLOT.DAY, label: TIME_SLOT_LABELS.day },
+  { value: TIME_SLOT.NIGHT, label: TIME_SLOT_LABELS.night }
+]
+
+const timeSlotSymbols = TIME_SLOT_SYMBOLS
 
 const activeCount = computed(() => topics.value.filter(t => t.status === STUDY_STATUS.ACTIVE).length)
 const weekCount = computed(() => logs.value.filter(l => isThisWeek(l.date)).length)
@@ -82,8 +99,8 @@ async function loadData() {
 
 async function saveTopic() {
   if (!form.value.name.trim()) return
-  await save('studyTopics', { name: form.value.name.trim(), goal: form.value.goal, timeCost: Number(form.value.timeCost) || 0, status: STUDY_STATUS.ACTIVE })
-  form.value = { name: '', goal: '', timeCost: 0 }
+  await save('studyTopics', { name: form.value.name.trim(), goal: form.value.goal, timeCost: Number(form.value.timeCost) || 0, timeSlot: form.value.timeSlot || TIME_SLOT.ANY, status: STUDY_STATUS.ACTIVE })
+  form.value = { name: '', goal: '', timeCost: 0, timeSlot: TIME_SLOT.ANY }
   showForm.value = false
   await loadData()
 }
@@ -109,5 +126,6 @@ onMounted(async () => { await loadData() })
 .topic-list__goal { font-size: 1.05rem; font-weight: 700; color: var(--ochre); flex: 1; }
 .topic-list__status { font-size: 1.05rem; font-weight: 700; }
 .topic-list__time-cost { font-size: 0.95rem; font-weight: 700; color: var(--olive); white-space: nowrap; }
+.topic-list__time-slot { font-size: 1.05rem; font-weight: 700; color: var(--c-dev); white-space: nowrap; }
 .topic-list__progress { display: flex; align-items: center; }
 </style>

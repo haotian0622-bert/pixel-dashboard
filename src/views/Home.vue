@@ -38,6 +38,12 @@
             <span v-if="item.priority" class="today-plan__item-priority">
               {{ prioritySymbols[item.priority] }}
             </span>
+            <span v-if="item.timeSlot && item.timeSlot !== 'any'" class="today-plan__item-time-slot">
+              {{ timeSlotSymbols[item.timeSlot] }}
+            </span>
+            <span v-if="item.timeCost" class="today-plan__item-time-cost">
+              ⏱{{ item.timeCost }}h
+            </span>
           </li>
         </ul>
       </div>
@@ -104,6 +110,7 @@ import {
   SOURCE_LABELS,
   SOURCE_COLOR_VAR,
   PRIORITY_SYMBOLS,
+  TIME_SLOT_SYMBOLS,
   MEDIA_STATUS
 } from '@/utils/constants'
 
@@ -120,6 +127,7 @@ const todayProgress = computed(() => {
 const sourceLabels = SOURCE_LABELS
 const sourceColorVar = SOURCE_COLOR_VAR
 const prioritySymbols = PRIORITY_SYMBOLS
+const timeSlotSymbols = TIME_SLOT_SYMBOLS
 
 // 便签
 const memos = ref([])
@@ -323,6 +331,17 @@ onMounted(async () => {
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--accent);
+}
+.today-plan__item-time-slot {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--c-dev);
+}
+.today-plan__item-time-cost {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--olive);
+  white-space: nowrap;
 }
 .memos__grid {
   display: grid;

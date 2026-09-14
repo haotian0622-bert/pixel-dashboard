@@ -34,6 +34,8 @@
           </select>
           <label>耗时(h):</label>
           <input type="number" class="pixel-input" v-model.number="form.timeCost" min="0" step="0.5" style="max-width: 90px" placeholder="0" />
+          <label>时段:</label>
+          <PixelSelect v-model="form.timeSlot" :options="timeSlotOptions" />
         </div>
         <div class="company__actions">
           <button class="pixel-btn pixel-btn--confirm" @click="saveItem">保存</button>
@@ -50,6 +52,7 @@
             <span class="company__item-priority">{{ prioritySymbols[item.priority] }}</span>
             <span v-if="item.deadline" class="company__item-deadline">{{ item.deadline }}</span>
             <span class="company__item-status" :style="{ color: statusColor(item.status) }">{{ statusLabels[item.status] }}</span>
+            <span v-if="item.timeSlot && item.timeSlot !== 'any'" class="company__item-time-slot">{{ timeSlotSymbols[item.timeSlot] }}</span>
             <span v-if="item.timeCost" class="company__item-time-cost">⏱{{ item.timeCost }}h</span>
           </div>
           <div class="company__item-actions">
@@ -80,8 +83,9 @@ import { ref, computed, onMounted, reactive } from 'vue'
 import PixelWindow from '@/components/PixelWindow.vue'
 import PixelInput from '@/components/PixelInput.vue'
 import PixelEmpty from '@/components/PixelEmpty.vue'
+import PixelSelect from '@/components/PixelSelect.vue'
 import { getAll, save, remove, query } from '@/db/dao'
-import { COMPANY_STATUS, COMPANY_STATUS_LABELS, COMPANY_CATEGORY, COMPANY_CATEGORY_LABELS, PRIORITY_LABELS, PRIORITY_SYMBOLS } from '@/utils/constants'
+import { COMPANY_STATUS, COMPANY_STATUS_LABELS, COMPANY_CATEGORY, COMPANY_CATEGORY_LABELS, PRIORITY_LABELS, PRIORITY_SYMBOLS, TIME_SLOT, TIME_SLOT_LABELS, TIME_SLOT_SYMBOLS } from '@/utils/constants'
 import { today } from '@/utils/date'
 
 const list = ref([])
@@ -93,11 +97,17 @@ const expandedId = ref(null)
 const notes = reactive({})
 const noteText = reactive({})
 
-const form = ref({ title: '', category: COMPANY_CATEGORY.DAILY, priority: 'medium', deadline: '', status: COMPANY_STATUS.TODO, timeCost: 0 })
+const form = ref({ title: '', category: COMPANY_CATEGORY.DAILY, priority: 'medium', deadline: '', status: COMPANY_STATUS.TODO, timeCost: 0, timeSlot: TIME_SLOT.ANY })
 const statusLabels = COMPANY_STATUS_LABELS
 const categoryLabels = COMPANY_CATEGORY_LABELS
 const priorityLabels = PRIORITY_LABELS
 const prioritySymbols = PRIORITY_SYMBOLS
+const timeSlotOptions = [
+  { value: TIME_SLOT.DAY, label: TIME_SLOT_LABELS[TIME_SLOT.DAY] },
+  { value: TIME_SLOT.NIGHT, label: TIME_SLOT_LABELS[TIME_SLOT.NIGHT] },
+  { value: TIME_SLOT.ANY, label: TIME_SLOT_LABELS[TIME_SLOT.ANY] }
+]
+const timeSlotSymbols = TIME_SLOT_SYMBOLS
 
 const filteredList = computed(() => {
   return list.value.filter(i => {
@@ -130,12 +140,12 @@ async function toggleNotes(item) {
 async function saveItem() {
   if (!form.value.title.trim()) return
   if (editingId.value) {
-    await save('companyItems', { ...form.value, timeCost: Number(form.value.timeCost) || 0, id: editingId.value })
+    await save('companyItems', { ...form.value, timeCost: Number(form.value.timeCost) || 0, timeSlot: form.value.timeSlot || TIME_SLOT.ANY, id: editingId.value })
     editingId.value = null
   } else {
-    await save('companyItems', { ...form.value, timeCost: Number(form.value.timeCost) || 0 })
+    await save('companyItems', { ...form.value, timeCost: Number(form.value.timeCost) || 0, timeSlot: form.value.timeSlot || TIME_SLOT.ANY })
   }
-  form.value = { title: '', category: COMPANY_CATEGORY.DAILY, priority: 'medium', deadline: '', status: COMPANY_STATUS.TODO, timeCost: 0 }
+  form.value = { title: '', category: COMPANY_CATEGORY.DAILY, priority: 'medium', deadline: '', status: COMPANY_STATUS.TODO, timeCost: 0, timeSlot: TIME_SLOT.ANY }
   showForm.value = false
   await loadList()
 }
@@ -179,6 +189,7 @@ onMounted(async () => { await loadList() })
 .company__item-deadline { font-size: 1rem; font-weight: 600; color: var(--ochre); }
 .company__item-status { font-size: 1.05rem; font-weight: bold; }
 .company__item-time-cost { font-size: 0.95rem; font-weight: 700; color: var(--olive); white-space: nowrap; }
+.company__item-time-slot { font-size: 1.05rem; font-weight: 700; color: var(--c-dev); white-space: nowrap; }
 .company__item-actions { display: flex; gap: 0.25rem; }
 .company__item-actions .pixel-btn { padding: 0.2rem 0.5rem; font-size: 1rem; font-weight: 600; }
 .company__notes { margin-top: 0.5rem; padding: 0.5rem; border: 2px solid var(--border); background: var(--bg); }
