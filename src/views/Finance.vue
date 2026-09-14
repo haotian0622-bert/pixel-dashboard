@@ -6,7 +6,7 @@
         <button class="pixel-btn" @click="prevMonth">< 上月</button>
         <span class="finance__month">{{ displayMonth }}</span>
         <button class="pixel-btn" @click="nextMonth">下月 ></button>
-        <button class="pixel-btn" @click="showForm = !showForm" style="margin-left: auto;">+ 新增</button>
+        <button class="pixel-btn" @click="openForm" style="margin-left: auto;">+ 新增</button>
       </div>
 
       <!-- 汇总 -->
@@ -33,6 +33,40 @@
           <PixelProgress :value="cat.percent" :max="10" />
           <span>¥{{ cat.amount }}</span>
         </div>
+      </div>
+
+      <!-- 月历视图 -->
+      <div class="finance__calendar">
+        <PixelCalendar
+          v-model="selectedDate"
+          :year="calYear"
+          :month="calMonth"
+          :marks="dayMarks"
+          @prev="prevMonth"
+          @next="nextMonth"
+        />
+      </div>
+
+      <!-- 选中日期的流水 -->
+      <div class="finance__day">
+        <h4 class="finance__day-title">
+          {{ selectedDate }} 当日流水
+          <button class="pixel-btn finance__day-add" @click="openForm">+ 记一笔</button>
+        </h4>
+        <PixelEmpty v-if="dayRecords.length === 0" text="当日暂无记录" />
+        <ul v-else class="record-list">
+          <li v-for="r in dayRecords" :key="r.id" class="record-list__item">
+            <span class="record-list__type" :class="{ 'record-list__type--income': r.type === 'income', 'record-list__type--expense': r.type === 'expense' }">
+              {{ typeLabels[r.type] }}
+            </span>
+            <span class="record-list__cat">{{ categoryLabels[r.category] }}</span>
+            <span class="record-list__amount" :class="{ 'record-list__amount--income': r.type === 'income', 'record-list__amount--expense': r.type === 'expense' }">
+              {{ r.type === 'income' ? '+' : '-' }}¥{{ r.amount }}
+            </span>
+            <span v-if="r.note" class="record-list__note">{{ r.note }}</span>
+            <button class="pixel-btn pixel-btn--cancel" @click="deleteRecord(r)">删</button>
+          </li>
+        </ul>
       </div>
 
       <!-- 新增表单 -->
@@ -76,6 +110,7 @@ import PixelWindow from '@/components/PixelWindow.vue'
 import PixelInput from '@/components/PixelInput.vue'
 import PixelProgress from '@/components/PixelProgress.vue'
 import PixelEmpty from '@/components/PixelEmpty.vue'
+import PixelCalendar from '@/components/PixelCalendar.vue'
 import { getAll, save, remove } from '@/db/dao'
 import { FINANCE_TYPE_LABELS, FINANCE_CATEGORY_LABELS } from '@/utils/constants'
 import { today, formatMonth } from '@/utils/date'
@@ -83,12 +118,15 @@ import { today, formatMonth } from '@/utils/date'
 const records = ref([])
 const showForm = ref(false)
 const currentMonth = ref(formatMonth(today()))
+const selectedDate = ref(today())
 
 const form = ref({ type: 'expense', amount: '', category: 'food', date: today(), note: '' })
 const typeLabels = FINANCE_TYPE_LABELS
 const categoryLabels = FINANCE_CATEGORY_LABELS
 
 const displayMonth = computed(() => currentMonth.value)
+const calYear = computed(() => Number(currentMonth.value.slice(0, 4)))
+const calMonth = computed(() => Number(currentMonth.value.slice(5, 7)) - 1)
 
 const monthRecords = computed(() => {
   return records.value
@@ -128,6 +166,7 @@ function prevMonth() {
   const d = new Date(y, m - 1, 1)
   d.setMonth(d.getMonth() - 1)
   currentMonth.value = formatMonth(d)
+  selectedDate.value = `${currentMonth.value}-01`
 }
 
 function nextMonth() {
@@ -135,6 +174,41 @@ function nextMonth() {
   const d = new Date(y, m - 1, 1)
   d.setMonth(d.getMonth() + 1)
   currentMonth.value = formatMonth(d)
+  selectedDate.value = `${currentMonth.value}-01`
+}
+
+// 选中日的流水（倒序）
+const dayRecords = computed(() => records.value
+  .filter(r => r.date === selectedDate.value)
+  .sort((a, b) => (b.id || '').localeCompare(a.id || '')))
+
+// 月历每日标记：红绿圆点 + 净额
+const dayMarks = computed(() => {
+  const sums = {}
+  for (const r of monthRecords.value) {
+    if (!r.date) continue
+    if (!sums[r.date]) sums[r.date] = { income: 0, expense: 0 }
+    if (r.type === 'income') sums[r.date].income += Number(r.amount || 0)
+    else sums[r.date].expense += Number(r.amount || 0)
+  }
+  const marks = {}
+  for (const [date, v] of Object.entries(sums)) {
+    const net = v.income - v.expense
+    const dots = []
+    if (v.income > 0) dots.push('income')
+    if (v.expense > 0) dots.push('expense')
+    marks[date] = {
+      dots,
+      text: net >= 0 ? `+${net}` : `${net}`,
+      cls: net >= 0 ? 'pixel-cal__cell--mark-green' : 'pixel-cal__cell--mark-red'
+    }
+  }
+  return marks
+})
+
+function openForm() {
+  form.value.date = selectedDate.value
+  showForm.value = true
 }
 
 async function saveRecord() {
@@ -171,6 +245,10 @@ onMounted(async () => { await loadRecords() })
 .finance__summary-value--income { color: var(--olive); }
 .finance__summary-value--expense { color: var(--accent); }
 .finance__categories { margin-bottom: 1rem; }
+.finance__calendar { margin-bottom: 1rem; }
+.finance__day { margin-bottom: 1rem; border: 3px solid var(--border); background: var(--bg); padding: 0.6rem; }
+.finance__day-title { display: flex; align-items: center; gap: 0.6rem; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+.finance__day-add { padding: 0.2rem 0.5rem; font-size: 0.95rem; font-weight: 700; }
 .finance__categories h4 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
 .finance__cat-item { display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600; margin-bottom: 0.25rem; }
 .finance__form { border: 3px solid var(--border); padding: 0.75rem; margin-bottom: 1rem; background: var(--bg); display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
