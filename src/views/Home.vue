@@ -89,6 +89,13 @@
           <div class="summary-card__body">
             <span class="summary-card__number">{{ card.number }}</span>
             <span class="summary-card__text">{{ card.text }}</span>
+            <ul v-if="card.lines && card.lines.length" class="summary-card__lines">
+              <li
+                v-for="(line, i) in card.lines"
+                :key="i"
+                class="summary-card__line"
+              >{{ line }}</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -105,7 +112,7 @@ import PixelInput from '@/components/PixelInput.vue'
 import { getTodayItems, toggleDone } from '@/db/aggr'
 import { getAll, save, remove } from '@/db/dao'
 import { query } from '@/db/dao'
-import { getChineseDate, today, isThisWeek, isThisMonth, formatMonth } from '@/utils/date'
+import { getChineseDate, today, isThisWeek, isThisMonth, formatMonth, getWeekday } from '@/utils/date'
 import {
   SOURCE_LABELS,
   SOURCE_COLOR_VAR,
@@ -203,36 +210,90 @@ async function loadSummaryCards() {
     .filter(r => r.type === 'income')
     .reduce((sum, r) => sum + Number(r.amount || 0), 0)
 
+  // ===== 各卡片明细（最多 2 行，放大信息量）=====
+  // 计划：未完成任务标题
+  const planLines = tasks
+    .filter(t => !t.done)
+    .slice(0, 2)
+    .map(t => `□ ${clip(t.title)}`)
+  if (planLines.length === 0 && tasks.length > 0) planLines.push('✓ 今日全部完成')
+
+  // 自媒体：本周待发布的视频日期+标题
+  const mediaLines = pendingMedia
+    .slice(0, 2)
+    .map(m => `${md(m.publishDate)} ${clip(m.title)}`.trim())
+
+  // 开发：进行中项目名
+  const devLines = activeProjects
+    .slice(0, 2)
+    .map(p => `▸ ${clip(p.name)}`)
+
+  // 公司：本周截止事项
+  const companyLines = weekCompany
+    .slice(0, 2)
+    .map(c => `${md(c.deadline)} ${clip(c.title)}`.trim())
+
+  // 健身：今日计划 + 最近打卡
+  const fitnessLines = []
+  const todayPlan = fitnessSchedule.find(s => s.weekday === getWeekday())
+  const sortedFitness = [...weekFitness].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+  if (todayPlan?.name) {
+    fitnessLines.push(`今日 ${clip(todayPlan.name)}`)
+    if (sortedFitness[0]) fitnessLines.push(`最近打卡 ${md(sortedFitness[0].date)}`)
+  } else {
+    sortedFitness.slice(0, 2).forEach(l => fitnessLines.push(`打卡 ${md(l.date)}`))
+  }
+
+  // 学习：进行中主题名
+  const studyLines = activeTopics
+    .slice(0, 2)
+    .map(t => `▸ ${clip(t.name)}`)
+
+  // 收支：净额 + 笔数
+  const financeLines = [
+    `净 ¥${monthIncome - monthExpense}`,
+    `本月 ${monthRecords.length} 笔`
+  ]
+
   summaryCards.value = [
     {
       name: 'plan', label: '计划', color: '--c-plan', route: '/plan',
-      number: `${taskDone}/${tasks.length}`, text: '今日完成'
+      number: `${taskDone}/${tasks.length}`, text: '今日完成', lines: planLines
     },
     {
       name: 'media', label: '自媒体', color: '--c-media', route: '/media',
-      number: pendingMedia.length, text: '本周待发布'
+      number: pendingMedia.length, text: '本周待发布', lines: mediaLines
     },
     {
       name: 'dev', label: '开发（AI）', color: '--c-dev', route: '/dev',
-      number: activeProjects.length, text: `进行中 · ${devProgress}%`
+      number: activeProjects.length, text: `进行中 · ${devProgress}%`, lines: devLines
     },
     {
       name: 'company', label: '公司', color: '--c-company', route: '/company',
-      number: weekCompany.length, text: '本周截止'
+      number: weekCompany.length, text: '本周截止', lines: companyLines
     },
     {
       name: 'fitness', label: '健身', color: '--c-fitness', route: '/fitness',
-      number: weekFitness.length, text: '本周已练'
+      number: weekFitness.length, text: '本周已练', lines: fitnessLines
     },
     {
       name: 'study', label: '学习', color: '--c-study', route: '/study',
-      number: activeTopics.length, text: `本周${weekStudy.length}次`
+      number: activeTopics.length, text: `本周${weekStudy.length}次`, lines: studyLines
     },
     {
       name: 'finance', label: '收支', color: '--c-finance', route: '/finance',
-      number: `¥${monthExpense}`, text: `收 ¥${monthIncome}`
+      number: `¥${monthExpense}`, text: `收 ¥${monthIncome}`, lines: financeLines
     }
   ]
+}
+
+// 明细文本工具：超长截断 / 日期取 MM-DD
+function clip(s, n = 8) {
+  s = String(s || '')
+  return s.length > n ? `${s.slice(0, n)}…` : s
+}
+function md(dateStr) {
+  return dateStr ? String(dateStr).slice(5) : ''
 }
 
 async function onToggle(item) {
@@ -268,7 +329,7 @@ onMounted(async () => {
 
 <style scoped>
 .home {
-  max-width: 900px;
+  max-width: 980px;
   margin: 0 auto;
 }
 .home__header {
@@ -375,39 +436,62 @@ onMounted(async () => {
 }
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
+  gap: 1rem;
 }
 .summary-card {
   border: 3px solid var(--border);
   background: var(--bg);
   cursor: pointer;
   transition: transform 0.05s;
+  box-shadow: 3px 3px 0 var(--shadow);
+  display: flex;
+  flex-direction: column;
 }
 .summary-card:hover {
   transform: translate(2px, -2px);
 }
 .summary-card__header {
-  padding: 0.4rem 0.6rem;
-  font-size: 1rem;
+  padding: 0.6rem 0.85rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--bg);
 }
 .summary-card__body {
-  padding: 0.6rem;
+  padding: 0.85rem 0.9rem;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.3rem;
+  flex: 1;
 }
 .summary-card__number {
-  font-size: 1.5rem;
+  font-size: 1.85rem;
   font-weight: 700;
   color: var(--text);
+  line-height: 1.1;
 }
 .summary-card__text {
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--ochre);
+}
+.summary-card__lines {
+  list-style: none;
+  margin: 0.45rem 0 0;
+  padding: 0.5rem 0 0;
+  border-top: 2px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.summary-card__line {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 @media (max-width: 768px) {
   .memos__grid,
