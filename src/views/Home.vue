@@ -284,9 +284,14 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  border: 3px solid var(--text);
+  background: var(--bg);
+  font-size: 1.25rem;
   font-weight: 700;
+  box-shadow: 3px 3px 0 var(--shadow);
 }
 .today-plan__list {
   display: flex;
