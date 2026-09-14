@@ -424,9 +424,9 @@ describe('阶段13：全量验收（对照PRD验收标准）', () => {
   describe('视觉设计', () => {
     it('整体为 16-bit 像素复古风格', () => {
       const variables = readFileSync(resolve(process.cwd(), 'src/styles/variables.css'), 'utf-8')
-      expect(variables).toContain('#EFE3C8') // 米黄底色
-      expect(variables).toContain('#4A3728') // 深褐
-      expect(variables).toContain('#E07A3F') // 橘红
+      expect(variables).toContain('#F8F2DC') // 更浅的米黄底色
+      expect(variables).toContain('#2E2014') // 更深的褐黑，对比更大
+      expect(variables).toContain('#D85A1A') // 更饱和的橘红
     })
 
     it('全像素中文字体显示', () => {
@@ -467,8 +467,8 @@ describe('阶段13：全量验收（对照PRD验收标准）', () => {
       const variables = readFileSync(resolve(process.cwd(), 'src/styles/variables.css'), 'utf-8')
       expect(variables).toContain('[data-theme="light"]')
       expect(variables).toContain('[data-theme="dark"]')
-      expect(variables).toContain('#2B2118') // 夜间深褐底
-      expect(variables).toContain('#E8A44C') // 夜间琥珀字
+      expect(variables).toContain('#1F1810') // 夜间深褐底
+      expect(variables).toContain('#F2C875') // 夜间琥珀字
     })
   })
 
