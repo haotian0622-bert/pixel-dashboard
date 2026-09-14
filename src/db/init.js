@@ -5,8 +5,8 @@
  */
 import { STORES } from '@/utils/constants'
 
-const DB_NAME = 'pixel-dashboard'
-const DB_VERSION = 2
+export const DB_NAME = 'pixel-dashboard'
+export const DB_VERSION = 2
 
 let dbInstance = null
 
