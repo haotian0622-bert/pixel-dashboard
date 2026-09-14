@@ -1,12 +1,12 @@
 /**
  * IndexedDB 初始化
- * 数据库：pixel-dashboard，版本 1
- * 创建 18 个 Object Store 及其索引
+ * 数据库：pixel-dashboard，版本 2（v2 新增 devLogs 开发日志 store）
+ * 创建 19 个 Object Store 及其索引
  */
 import { STORES } from '@/utils/constants'
 
 const DB_NAME = 'pixel-dashboard'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 let dbInstance = null
 
@@ -37,6 +37,10 @@ const STORE_INDEXES = {
   ],
   devSnippets: [
     { name: 'projectId', keyPath: 'projectId', unique: false }
+  ],
+  devLogs: [
+    { name: 'projectId', keyPath: 'projectId', unique: false },
+    { name: 'date', keyPath: 'date', unique: false }
   ],
   companyItems: [
     { name: 'status', keyPath: 'status', unique: false },

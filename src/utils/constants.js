@@ -87,17 +87,32 @@ export const MEDIA_METRIC_LABELS = {
 
 // 开发项目状态
 export const DEV_PROJECT_STATUS = {
-  PLANNING: 'planning',  // 规划中
+  NOT_STARTED: 'planning',  // 待开始（内部沿用 planning 键）
   ACTIVE: 'active',      // 进行中
   PAUSED: 'paused',       // 暂停
-  DONE: 'done'            // 完成
+  DONE: 'done'            // 已完结
 }
 
 export const DEV_PROJECT_STATUS_LABELS = {
-  planning: '规划中',
+  planning: '待开始',
   active: '进行中',
   paused: '暂停',
-  done: '完成'
+  done: '已完结'
+}
+
+// 开发工作项分类（功能 / 需求 / Bug / 技术问题）
+export const DEV_TASK_KIND = {
+  FEATURE: 'feature',           // 功能
+  REQUIREMENT: 'requirement',   // 需求
+  BUG: 'bug',                   // Bug
+  TECH: 'tech'                  // 技术问题
+}
+
+export const DEV_TASK_KIND_LABELS = {
+  feature: '功能',
+  requirement: '需求',
+  bug: 'Bug',
+  tech: '技术问题'
 }
 
 // 里程碑状态
@@ -222,6 +237,7 @@ export const STORES = [
   'devMilestones',
   'devTasks',
   'devSnippets',
+  'devLogs',
   'companyItems',
   'companyNotes',
   'fitnessSchedule',
