@@ -271,7 +271,7 @@ const xLabels = computed(() => {
   text-align: center;
   color: var(--ochre);
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   border: 2px dashed var(--border);
   opacity: 0.6;
 }

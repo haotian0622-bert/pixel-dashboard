@@ -37,7 +37,7 @@ defineEmits(['update:modelValue', 'blur'])
   color: var(--text);
   font-family: inherit;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   outline: none;
   width: 100%;
 }

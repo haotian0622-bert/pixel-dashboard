@@ -342,7 +342,7 @@ onMounted(async () => {
 }
 .home__status {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ochre);
   margin-top: 0.25rem;
 }
@@ -374,7 +374,7 @@ onMounted(async () => {
   padding: 0.5rem 0.5rem;
   border-bottom: 2px solid var(--border);
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 .today-plan__item:last-child {
   border-bottom: none;
@@ -384,7 +384,7 @@ onMounted(async () => {
 }
 .today-plan__item-source {
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ochre);
   opacity: 0.7;
 }
@@ -418,7 +418,7 @@ onMounted(async () => {
 }
 .memo-card__content {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   white-space: pre-wrap;
   word-break: break-all;
   padding-right: 1.5rem;
@@ -472,7 +472,7 @@ onMounted(async () => {
 }
 .summary-card__text {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ochre);
 }
 .summary-card__lines {
@@ -486,7 +486,7 @@ onMounted(async () => {
 }
 .summary-card__line {
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   opacity: 0.8;
   white-space: nowrap;

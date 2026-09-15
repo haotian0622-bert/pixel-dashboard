@@ -241,10 +241,10 @@ onMounted(async () => {
 .project-list__status { font-size: 1.05rem; font-weight: 700; white-space: nowrap; }
 .project-list__time-cost { font-size: 0.95rem; font-weight: 700; color: var(--olive); white-space: nowrap; }
 .project-list__time-slot { font-size: 1.05rem; font-weight: 700; color: var(--c-dev); white-space: nowrap; }
-.project-list__desc { font-size: 1.05rem; font-weight: 600; color: var(--ochre); margin-bottom: 0.5rem; }
+.project-list__desc { font-size: 1.05rem; font-weight: 700; color: var(--ochre); margin-bottom: 0.5rem; }
 .project-list__meta {
   display: flex; flex-wrap: wrap; gap: 0.4rem 1rem;
-  font-size: 0.95rem; font-weight: 600;
+  font-size: 0.95rem; font-weight: 700;
   margin-bottom: 0.5rem;
 }
 .project-list__dir { color: var(--c-dev); word-break: break-all; }
@@ -262,7 +262,7 @@ onMounted(async () => {
   border: 2px solid var(--border);
   background: var(--bg);
   cursor: pointer;
-  font-size: 1rem; font-weight: 600;
+  font-size: 1rem; font-weight: 700;
 }
 .flag-list__item:hover { background: var(--panel); }
 .milestone-flag { font-size: 1.35rem; line-height: 1; font-weight: 700; }

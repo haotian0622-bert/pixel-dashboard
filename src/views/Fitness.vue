@@ -256,7 +256,7 @@ onMounted(async () => {
 .fitness__day { border: 3px solid var(--border); background: var(--bg); padding: 0.5rem; text-align: center; min-height: 80px; }
 .fitness__day--today { border-color: var(--accent); background: var(--panel); }
 .fitness__day-header { font-size: 1.05rem; font-weight: bold; margin-bottom: 0.25rem; }
-.fitness__day-content { font-size: 1rem; font-weight: 600; }
+.fitness__day-content { font-size: 1rem; font-weight: 700; }
 .fitness__day-name { display: block; margin-bottom: 0.25rem; }
 .fitness__day-duration { font-size: 0.9rem; font-weight: 700; color: var(--olive); }
 .fitness__ex-duration { display: flex; align-items: center; gap: 0.5rem; margin: 0.5rem 0; font-size: 1rem; font-weight: 700; }
@@ -270,11 +270,11 @@ onMounted(async () => {
 .fitness__day-detail-head { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
 .fitness__day-detail-date { font-size: 1.1rem; }
 .fitness__day-plan { font-size: 1.05rem; font-weight: 700; color: var(--c-fitness); flex: 1; }
-.fitness__day-plan--rest { color: var(--ochre); font-weight: 600; }
+.fitness__day-plan--rest { color: var(--ochre); font-weight: 700; }
 .fitness__day-body { margin-top: 0.4rem; font-size: 1.05rem; font-weight: 700; color: var(--ochre); }
 .fitness__body-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 .fitness__body-list { display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.5rem; }
-.fitness__body-item { display: flex; gap: 1rem; font-size: 1.05rem; font-weight: 600; padding: 0.25rem; border-bottom: 1px solid var(--border); }
+.fitness__body-item { display: flex; gap: 1rem; font-size: 1.05rem; font-weight: 700; padding: 0.25rem; border-bottom: 1px solid var(--border); }
 .fitness__edit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .fitness__edit-form { min-width: 400px; max-width: 600px; }
 .fitness__ex-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }

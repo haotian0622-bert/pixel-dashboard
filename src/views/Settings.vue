@@ -197,13 +197,13 @@ onMounted(() => {
 .settings__section h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
 .settings__theme { display: flex; gap: 0.5rem; }
 .settings__data { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
-.settings__tip { font-size: 1rem; font-weight: 600; line-height: 1.6; margin-bottom: 0.6rem; }
+.settings__tip { font-size: 1rem; font-weight: 700; line-height: 1.6; margin-bottom: 0.6rem; }
 .settings__save-btn { font-size: 1.1rem; font-weight: 700; padding: 0.6rem 1.2rem; }
 .settings__save-msg { margin-top: 0.6rem; font-size: 1rem; font-weight: 700; color: var(--olive); }
-.settings__last-backup { margin-top: 0.4rem; font-size: 0.95rem; font-weight: 600; }
+.settings__last-backup { margin-top: 0.4rem; font-size: 0.95rem; font-weight: 700; }
 .settings__last-backup--empty { color: var(--ochre); }
 .settings__storage { display: flex; flex-direction: column; gap: 0.4rem; border: 3px solid var(--border); background: var(--bg); padding: 0.7rem; }
-.settings__storage li { font-size: 0.95rem; font-weight: 600; line-height: 1.5; word-break: break-all; }
+.settings__storage li { font-size: 0.95rem; font-weight: 700; line-height: 1.5; word-break: break-all; }
 .settings__storage-label { font-weight: 700; color: var(--ochre); }
 @media (max-width: 768px) {
   .settings__save-btn { width: 100%; }

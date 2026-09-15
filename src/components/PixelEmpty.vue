@@ -25,6 +25,6 @@ defineProps({
 }
 .pixel-empty__text {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 </style>

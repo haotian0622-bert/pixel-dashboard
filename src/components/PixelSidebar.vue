@@ -152,7 +152,7 @@ function navigate(path) {
   padding: 0.5rem 0.75rem;
   cursor: pointer;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   position: relative;
 }

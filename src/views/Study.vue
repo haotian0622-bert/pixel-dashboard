@@ -115,7 +115,7 @@ onMounted(async () => { await loadData() })
 <style scoped>
 .study { max-width: 800px; margin: 0 auto; }
 .study__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.study__stats { display: flex; gap: 1rem; font-size: 1.05rem; font-weight: 600; }
+.study__stats { display: flex; gap: 1rem; font-size: 1.05rem; font-weight: 700; }
 .study__form { border: 3px solid var(--border); padding: 0.75rem; margin-bottom: 1rem; background: var(--bg); display: flex; flex-direction: column; gap: 0.5rem; }
 .study__actions { display: flex; gap: 0.5rem; }
 .topic-list { display: flex; flex-direction: column; gap: 0.75rem; }

@@ -362,7 +362,7 @@ onMounted(async () => {
   align-items: center;
   gap: 0.5rem;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 .plan__add-actions {
   display: flex;
@@ -374,7 +374,7 @@ onMounted(async () => {
   justify-content: space-between;
   margin-bottom: 1rem;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 .task-list {
   display: flex;
@@ -388,7 +388,7 @@ onMounted(async () => {
   padding: 0.4rem 0.5rem;
   border-bottom: 2px solid var(--border);
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 .task-list__item:last-child {
   border-bottom: none;
@@ -398,7 +398,7 @@ onMounted(async () => {
 }
 .task-list__source {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ochre);
 }
 .task-list__priority {
@@ -425,7 +425,7 @@ onMounted(async () => {
 .task-list__actions .pixel-btn {
   padding: 0.2rem 0.5rem;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 .week-grid {
   display: grid;
@@ -454,7 +454,7 @@ onMounted(async () => {
 }
 .week-day__count {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 .week-day-detail {
   margin-top: 1rem;

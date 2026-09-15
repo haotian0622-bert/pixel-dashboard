@@ -345,7 +345,7 @@ onMounted(async () => {
 .media__tabs { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
 .plan__add-btn { margin-left: auto; }
 .media__form { border: 3px solid var(--border); padding: 0.75rem; margin-bottom: 1rem; background: var(--bg); display: flex; flex-direction: column; gap: 0.5rem; }
-.media__row { display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; font-weight: 600; flex-wrap: wrap; }
+.media__row { display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; font-weight: 700; flex-wrap: wrap; }
 .media__actions { display: flex; gap: 0.5rem; }
 
 .media__board {
@@ -405,9 +405,9 @@ onMounted(async () => {
 .media-card:active { cursor: grabbing; }
 .media-card--dragging { opacity: 0.4; }
 .media-card__title { font-size: 1.05rem; font-weight: 700; line-height: 1.3; }
-.media-card__meta { font-size: 0.95rem; font-weight: 600; color: var(--ochre); }
+.media-card__meta { font-size: 0.95rem; font-weight: 700; color: var(--ochre); }
 .media-card__note {
-  font-size: 0.95rem; font-weight: 600;
+  font-size: 0.95rem; font-weight: 700;
   white-space: pre-wrap; word-break: break-all;
   padding: 0.25rem;
   background: var(--panel);
@@ -434,7 +434,7 @@ onMounted(async () => {
   color: var(--ochre);
   opacity: 0.5;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   padding: 1rem 0.5rem;
   border: 2px dashed var(--border);
 }

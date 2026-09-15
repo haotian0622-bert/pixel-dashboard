@@ -18,7 +18,7 @@ body {
   background-color: var(--bg);
   color: var(--text);
   line-height: 1.6;
-  font-weight: 600;
+  font-weight: 700;
   image-rendering: pixelated;
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: grayscale;
