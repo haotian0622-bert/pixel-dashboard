@@ -28,10 +28,10 @@ body {
   min-height: 100vh;
 }
 
-/* 方舟像素字体 @font-face */
+/* 方舟像素字体 @font-face（置于 src/assets 由 Vite 处理，兼容 GitHub Pages 子路径） */
 @font-face {
   font-family: 'ArkPixel';
-  src: url('/fonts/ark-pixel-16px-proportional-zh_cn.woff2') format('woff2');
+  src: url('../assets/fonts/ark-pixel-16px-proportional-zh_cn.woff2') format('woff2');
   font-display: swap;
 }
 
