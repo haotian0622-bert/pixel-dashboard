@@ -61,27 +61,28 @@ describe('阶段13：全量验收（对照PRD验收标准）', () => {
         resolve(process.cwd(), 'src/components/PixelSidebar.vue'),
         'utf-8'
       )
-      // 6 个分组
+      // 7 个分组
       const groupCount = (sidebar.match(/sidebar-nav__group/g) || []).length
       expect(groupCount).toBeGreaterThanOrEqual(6)
-      // 9 个模块名
+      // 9 个模块名（开发模块已移除，新增抽卡小游戏）
       expect(sidebar).toContain('首页')
       expect(sidebar).toContain('本周/今日计划')
       expect(sidebar).toContain('自媒体')
-      expect(sidebar).toContain('开发工作（AI）')
       expect(sidebar).toContain('公司事情安排')
       expect(sidebar).toContain('健身计划')
       expect(sidebar).toContain('学习计划')
       expect(sidebar).toContain('本月开支和收入')
+      expect(sidebar).toContain('抽卡小游戏')
       expect(sidebar).toContain('数据与设置')
+      expect(sidebar).not.toContain('开发工作（AI）')
     })
 
-    it('点击每个模块都能进入对应页面（路由 11 条）', async () => {
+    it('点击每个模块都能进入对应页面（路由 10 条）', async () => {
       const routerModule = await import('../router/index.js')
       const routes = routerModule.default.options.routes
-      expect(routes.length).toBe(11)
+      expect(routes.length).toBe(10)
       const names = routes.map(r => r.name)
-      const expected = ['home', 'plan', 'media', 'dev', 'devDetail', 'company', 'fitness', 'study', 'studyDetail', 'finance', 'settings']
+      const expected = ['home', 'plan', 'media', 'company', 'fitness', 'study', 'studyDetail', 'finance', 'game', 'settings']
       for (const n of expected) expect(names).toContain(n)
     })
 

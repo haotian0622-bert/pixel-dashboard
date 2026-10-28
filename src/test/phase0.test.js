@@ -31,23 +31,23 @@ describe('阶段0：项目初始化', () => {
     expect(html).toContain('src="/src/main.js"')
   })
 
-  // 0.4 验证路由配置包含 9 个模块路由
-  it('路由配置包含 9 个模块的全部路由', async () => {
+  // 0.4 验证路由配置（开发模块已移除，新增抽卡小游戏）
+  it('路由配置包含全部模块路由', async () => {
     const routerModule = await import('../router/index.js')
     const routes = routerModule.default.options.routes
     const routeNames = routes.map(r => r.name)
     expect(routeNames).toContain('home')
     expect(routeNames).toContain('plan')
     expect(routeNames).toContain('media')
-    expect(routeNames).toContain('dev')
-    expect(routeNames).toContain('devDetail')
     expect(routeNames).toContain('company')
     expect(routeNames).toContain('fitness')
     expect(routeNames).toContain('study')
     expect(routeNames).toContain('studyDetail')
     expect(routeNames).toContain('finance')
+    expect(routeNames).toContain('game')
     expect(routeNames).toContain('settings')
-    expect(routes.length).toBe(11) // 9 模块 + 2 个详情子页
+    expect(routeNames).not.toContain('dev')
+    expect(routes.length).toBe(10) // 8 个模块 + 1 个详情子页 + 游戏
   })
 
   // 0.5 验证 CSS 变量包含日间和夜间主题

@@ -9,10 +9,44 @@
     <!-- 今日计划区 -->
     <PixelWindow title="今日计划" icon="★" class="home__section">
       <div class="today-plan">
-        <div class="today-plan__stats">
-          <span>{{ todayDoneCount }}/{{ todayItems.length }} 完成</span>
-          <PixelProgress :value="todayProgress" :max="10" />
+        <div class="today-plan__bar">
+          <div class="today-plan__stats" style="margin-bottom: 0; flex: 1">
+            <span>{{ todayDoneCount }}/{{ todayItems.length }} 完成</span>
+            <PixelProgress :value="todayProgress" :max="10" />
+          </div>
+          <button class="pixel-btn pixel-btn--confirm today-plan__add-btn" @click="toggleAddForm">
+            ＋ 添加任务
+          </button>
         </div>
+
+        <!-- 首页直接添加今日任务 -->
+        <div v-if="showAddTask" class="today-plan__form">
+          <PixelInput
+            v-model="newTask.title"
+            placeholder="任务标题"
+            @keyup.enter="saveNewTask"
+          />
+          <div class="today-plan__form-row">
+            <label>优先级</label>
+            <PixelSelect v-model="newTask.priority" :options="priorityOptions" />
+            <label>时段</label>
+            <PixelSelect v-model="newTask.timeSlot" :options="timeSlotOptions" />
+            <label>耗时(h)</label>
+            <input
+              type="number"
+              class="pixel-input today-plan__time-cost"
+              v-model.number="newTask.timeCost"
+              min="0"
+              step="0.5"
+              placeholder="0"
+            />
+          </div>
+          <div class="today-plan__form-actions">
+            <button class="pixel-btn pixel-btn--confirm" @click="saveNewTask">保存</button>
+            <button class="pixel-btn" @click="showAddTask = false">取消</button>
+          </div>
+        </div>
+
         <div v-if="todayItems.length === 0" class="pixel-empty">
           <span class="pixel-empty__icon">◇</span>
           <span class="pixel-empty__text">今日暂无待办</span>
@@ -109,6 +143,7 @@ import { useRouter } from 'vue-router'
 import PixelWindow from '@/components/PixelWindow.vue'
 import PixelProgress from '@/components/PixelProgress.vue'
 import PixelInput from '@/components/PixelInput.vue'
+import PixelSelect from '@/components/PixelSelect.vue'
 import { getTodayItems, toggleDone } from '@/db/aggr'
 import { getAll, save, remove } from '@/db/dao'
 import { query } from '@/db/dao'
@@ -117,6 +152,10 @@ import {
   SOURCE_LABELS,
   SOURCE_COLOR_VAR,
   PRIORITY_SYMBOLS,
+  PRIORITY,
+  PRIORITY_LABELS,
+  TIME_SLOT,
+  TIME_SLOT_LABELS,
   TIME_SLOT_SYMBOLS,
   MEDIA_STATUS
 } from '@/utils/constants'
@@ -135,6 +174,47 @@ const sourceLabels = SOURCE_LABELS
 const sourceColorVar = SOURCE_COLOR_VAR
 const prioritySymbols = PRIORITY_SYMBOLS
 const timeSlotSymbols = TIME_SLOT_SYMBOLS
+
+// 首页直接添加任务
+const showAddTask = ref(false)
+const newTask = ref({
+  title: '',
+  priority: PRIORITY.MEDIUM,
+  timeSlot: TIME_SLOT.ANY,
+  timeCost: 0
+})
+const priorityOptions = [
+  { value: PRIORITY.HIGH, label: PRIORITY_LABELS.high },
+  { value: PRIORITY.MEDIUM, label: PRIORITY_LABELS.medium },
+  { value: PRIORITY.LOW, label: PRIORITY_LABELS.low }
+]
+const timeSlotOptions = [
+  { value: TIME_SLOT.ANY, label: TIME_SLOT_LABELS.any },
+  { value: TIME_SLOT.DAY, label: TIME_SLOT_LABELS.day },
+  { value: TIME_SLOT.NIGHT, label: TIME_SLOT_LABELS.night }
+]
+
+function toggleAddForm() {
+  showAddTask.value = !showAddTask.value
+}
+
+async function saveNewTask() {
+  if (!newTask.value.title.trim()) return
+  await save('tasks', {
+    title: newTask.value.title.trim(),
+    date: today(),
+    priority: newTask.value.priority,
+    timeSlot: newTask.value.timeSlot,
+    timeCost: Number(newTask.value.timeCost) || 0,
+    note: '',
+    done: false,
+    source: 'manual'
+  })
+  newTask.value = { title: '', priority: PRIORITY.MEDIUM, timeSlot: TIME_SLOT.ANY, timeCost: 0 }
+  showAddTask.value = false
+  await loadTodayItems()
+  await loadSummaryCards()
+}
 
 // 便签
 const memos = ref([])
@@ -173,15 +253,6 @@ async function loadSummaryCards() {
   // 自媒体摘要
   const allMedia = await getAll('media')
   const pendingMedia = allMedia.filter(m => m.status === MEDIA_STATUS.SCHEDULED && isThisWeek(m.publishDate))
-
-  // 开发摘要
-  const projects = await getAll('devProjects')
-  const activeProjects = projects.filter(p => p.status === 'active')
-  const devTasks = await getAll('devTasks')
-  let devProgress = 0
-  if (devTasks.length > 0) {
-    devProgress = Math.round((devTasks.filter(t => t.done).length / devTasks.length) * 100)
-  }
 
   // 公司摘要
   const companyItems = await getAll('companyItems')
@@ -223,11 +294,6 @@ async function loadSummaryCards() {
     .slice(0, 2)
     .map(m => `${md(m.publishDate)} ${clip(m.title)}`.trim())
 
-  // 开发：进行中项目名
-  const devLines = activeProjects
-    .slice(0, 2)
-    .map(p => `▸ ${clip(p.name)}`)
-
   // 公司：本周截止事项
   const companyLines = weekCompany
     .slice(0, 2)
@@ -263,10 +329,6 @@ async function loadSummaryCards() {
     {
       name: 'media', label: '自媒体', color: '--c-media', route: '/media',
       number: pendingMedia.length, text: '本周待发布', lines: mediaLines
-    },
-    {
-      name: 'dev', label: '开发（AI）', color: '--c-dev', route: '/dev',
-      number: activeProjects.length, text: `进行中 · ${devProgress}%`, lines: devLines
     },
     {
       name: 'company', label: '公司', color: '--c-company', route: '/company',
@@ -348,6 +410,51 @@ onMounted(async () => {
 }
 .home__section {
   margin-bottom: 1.5rem;
+}
+.today-plan__bar {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.today-plan__add-btn {
+  align-self: stretch;
+  padding: 0.5rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.today-plan__form {
+  border: 3px solid var(--border);
+  background: var(--bg);
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.today-plan__form-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.today-plan__time-cost {
+  max-width: 90px;
+}
+.today-plan__form-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+@media (max-width: 768px) {
+  .today-plan__bar {
+    flex-direction: column;
+  }
+  .today-plan__add-btn {
+    padding: 0.6rem 1rem;
+  }
 }
 .today-plan__stats {
   display: flex;

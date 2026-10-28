@@ -4,19 +4,84 @@
  * 汇集规则：各模块中"今日到期/截止/训练/待发布/学习任务"的条目自动出现在今日计划
  * 双向同步：在今日计划勾选完成 → 回写源模块；在源模块勾选 → 今日计划同步
  */
-import { getAll, query, patch } from './dao'
-import { today, getWeekday, formatDate, isThisWeek } from '@/utils/date'
+import { getAll, query, patch, save } from './dao'
+import { today, getWeekday, formatDate, isThisWeek, getMondayOfWeek } from '@/utils/date'
 import {
   SOURCE,
   MEDIA_STATUS,
   COMPANY_STATUS
 } from '@/utils/constants'
 
+/** 未完成顺延的每日标记，避免同一天重复执行 */
+const ROLLOVER_KEY = 'pixel-dashboard:rollover-date'
+
+/**
+ * 每日顺延：把今天之前的未完成手动任务移到今天
+ * 只在每天第一次打开应用时执行一次
+ * @returns {Promise<number>} 顺延的任务数
+ */
+export async function carryOverUnfinishedTasks() {
+  const todayStr = today()
+  try {
+    if (localStorage.getItem(ROLLOVER_KEY) === todayStr) return 0
+  } catch {
+    // localStorage 不可用时仍然执行顺延
+  }
+
+  const tasks = await getAll('tasks')
+  let moved = 0
+  for (const t of tasks) {
+    if (!t.done && t.date && t.date < todayStr) {
+      await patch('tasks', t.id, { date: todayStr })
+      moved += 1
+    }
+  }
+
+  try {
+    localStorage.setItem(ROLLOVER_KEY, todayStr)
+  } catch {
+    // 忽略
+  }
+  return moved
+}
+
+/** 不同来源的任务对应的日期字段 */
+const DATE_FIELDS = {
+  [SOURCE.MEDIA]: ['media', 'publishDate'],
+  [SOURCE.COMPANY]: ['companyItems', 'deadline'],
+  [SOURCE.STUDY]: ['studyTasks', 'dueDate'],
+  [SOURCE.DEV]: ['devTasks', 'dueDate']
+}
+
+/**
+ * 把某条任务拖到指定日期（改期）
+ * @param {{source:string, sourceId:string}} item
+ * @param {string} dateStr YYYY-MM-DD
+ * @returns {Promise<boolean>} 是否成功改期
+ */
+export async function moveItemToDate(item, dateStr) {
+  if (!item || !item.sourceId || !dateStr) return false
+
+  if (item.source === SOURCE.MANUAL) {
+    await patch('tasks', item.sourceId, { date: dateStr })
+    return true
+  }
+
+  const target = DATE_FIELDS[item.source]
+  if (!target) return false // 健身按星期排程，不能改日期
+  await patch(target[0], item.sourceId, { [target[1]]: dateStr })
+  return true
+}
+
+
 /**
  * 获取今日所有项（各模块汇集）
  * @returns {Promise<Array<{id, title, source, sourceId, priority, done, date, note}>>}
  */
 export async function getTodayItems() {
+  // 每天首次加载时，把之前未完成的任务顺延到今天
+  await carryOverUnfinishedTasks()
+
   const todayStr = today()
   const weekday = getWeekday()
   const items = []
@@ -215,6 +280,29 @@ export async function getItemsByDate(dateStr) {
     date: t.date,
     note: t.note || ''
   }))
+}
+
+/**
+ * 获取本周看板：周一~周日，每天带日期、标签与任务列表
+ * 今日列包含各模块汇集的今日项，其余天只含手动任务
+ */
+export async function getWeekBoard() {
+  const monday = getMondayOfWeek()
+  const board = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    const dateStr = formatDate(d)
+    const items = await getItemsByDate(dateStr)
+    board.push({
+      weekday: i + 1,
+      date: dateStr,
+      label: `${d.getMonth() + 1}/${d.getDate()}`,
+      items,
+      count: items.length
+    })
+  }
+  return board
 }
 
 /**

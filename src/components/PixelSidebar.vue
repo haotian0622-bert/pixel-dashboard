@@ -84,6 +84,22 @@
       </div>
     </div>
 
+    <!-- 娱乐 -->
+    <div class="sidebar-nav__group">
+      <div class="sidebar-nav__group-title">娱乐</div>
+      <div
+        class="sidebar-nav__item"
+        :class="{ 'sidebar-nav__item--active': currentRoute === 'game' }"
+        @click="navigate('/game')"
+      >
+        <span
+          class="sidebar-nav__module-color"
+          :style="{ background: 'var(--accent)' }"
+        ></span>
+        <span>抽卡小游戏</span>
+      </div>
+    </div>
+
     <!-- 系统 -->
     <div class="sidebar-nav__group">
       <div class="sidebar-nav__group-title">系统</div>
@@ -113,7 +129,6 @@ const currentRoute = computed(() => route.name || '')
 
 const workItems = [
   { route: '/media', name: 'media', label: '自媒体', color: '--c-media' },
-  { route: '/dev', name: 'dev', label: '开发工作（AI）', color: '--c-dev' },
   { route: '/company', name: 'company', label: '公司事情安排', color: '--c-company' }
 ]
 

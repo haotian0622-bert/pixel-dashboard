@@ -98,10 +98,10 @@ describe('问题8：首页摘要卡放大、多呈现内容', () => {
       await save('financeRecords', { amount: 5000, type: 'income', date: today() })
     })
 
-    it('每张卡都带明细容器，7 张卡数量不变', async () => {
+    it('每张卡都带明细容器，6 张卡数量不变', async () => {
       const wrapper = await mountHome()
-      await waitFor(() => { expect(wrapper.findAll('.summary-card')).toHaveLength(7) })
-      expect(wrapper.findAll('.summary-card__lines').length).toBeGreaterThanOrEqual(6)
+      await waitFor(() => { expect(wrapper.findAll('.summary-card')).toHaveLength(6) })
+      expect(wrapper.findAll('.summary-card__lines').length).toBeGreaterThanOrEqual(5)
     })
 
     it('计划卡：列出未完成任务标题，不包含已完成', async () => {
@@ -124,10 +124,11 @@ describe('问题8：首页摘要卡放大、多呈现内容', () => {
       expect(text).toContain(today().slice(5))
     })
 
-    it('开发卡：列出进行中项目名', async () => {
+    it('开发卡已移除，不再出现开发（AI）入口', async () => {
       const wrapper = await mountHome()
-      const card = await waitFor(() => cardByLabel(wrapper, '开发（AI）'))
-      expect(card.text()).toContain('AI项目')
+      await waitFor(() => { expect(wrapper.findAll('.summary-card').length).toBeGreaterThan(0) })
+      const devCard = cardByLabel(wrapper, '开发（AI）')
+      expect(devCard === undefined || devCard === null).toBe(true)
     })
 
     it('公司卡：列出本周截止事项与日期', async () => {
@@ -189,7 +190,7 @@ describe('问题8：首页摘要卡放大、多呈现内容', () => {
 
     it('无待办/无数据的卡不报错（空库渲染）', async () => {
       const wrapper = await mountHome()
-      await waitFor(() => { expect(wrapper.findAll('.summary-card')).toHaveLength(7) })
+      await waitFor(() => { expect(wrapper.findAll('.summary-card')).toHaveLength(6) })
       // 计划卡 0/0，无明细行
       const planCard = cardByLabel(wrapper, '计划')
       expect(planCard.find('.summary-card__lines').exists()).toBe(false)

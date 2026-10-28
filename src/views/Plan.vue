@@ -62,89 +62,109 @@
           </div>
         </div>
 
-        <!-- 今日视图 -->
-        <div v-if="view === 'today'" class="plan__today">
-          <div class="plan__stats">
-            <span>{{ doneCount }}/{{ todayItems.length }} 完成</span>
-            <PixelProgress :value="todayProgress" :max="10" />
-          </div>
-          <PixelEmpty v-if="todayItems.length === 0" text="今日暂无待办" />
-          <ul v-else class="task-list">
-            <li
-              v-for="item in todayItems"
-              :key="item.id"
-              class="task-list__item"
-              :class="{ 'task-done': item.done }"
-            >
-              <span
-                class="task-checkbox"
-                :class="{ 'task-checkbox--checked': item.done }"
-                @click="onToggle(item)"
-              >{{ item.done ? '✔' : '□' }}</span>
-              <span
-                class="source-dot"
-                :style="{ background: `var(${sourceColorVar[item.source]})` }"
-              ></span>
-              <span class="task-list__title">{{ item.title }}</span>
-              <span class="task-list__source">{{ sourceLabels[item.source] }}</span>
-              <span v-if="item.priority" class="task-list__priority">
-                {{ prioritySymbols[item.priority] }}
-              </span>
-              <span v-if="item.timeSlot && item.timeSlot !== 'any'" class="task-list__time-slot">
-                {{ timeSlotSymbols[item.timeSlot] }}
-              </span>
-              <span v-if="item.timeCost" class="task-list__time-cost">
-                ⏱{{ item.timeCost }}h
-              </span>
-              <span
-                v-if="item.source === 'manual'"
-                class="task-list__actions"
-              >
-                <button class="pixel-btn" @click="startEdit(item)">改</button>
-                <button class="pixel-btn pixel-btn--cancel" @click="deleteTask(item)">删</button>
-              </span>
-            </li>
-          </ul>
-        </div>
+        <!-- 拖拽提示 -->
+        <p class="plan__drag-hint">
+          按住任务左侧 <span class="drag-hint__grip">⠿</span> 可拖到任意一天
+          <span v-if="dragMsg" class="plan__drag-msg">{{ dragMsg }}</span>
+        </p>
 
-        <!-- 本周视图 -->
-        <div v-if="view === 'week'" class="plan__week">
-          <div class="week-grid">
-            <div
-              v-for="day in weekDays"
-              :key="day.weekday"
-              class="week-day"
-              :class="{ 'week-day--today': day.date === todayStr }"
-              @click="selectDay(day.date)"
-            >
-              <div class="week-day__header">
-                周{{ weekdayNames[day.weekday - 1] }}
-              </div>
-              <div class="week-day__count">
-                {{ day.count }} 项
-              </div>
+        <!-- 今日视图：今日计划列 + 本周安排看板 -->
+        <div v-if="view === 'today'" class="plan__today">
+          <section
+            class="day-column day-column--today"
+            data-drop-date="today"
+            :class="{ 'day-column--over': overDate === 'today' }"
+          >
+            <div class="day-column__head">
+              <span class="day-column__title">今日计划</span>
+              <span class="day-column__date">{{ todayLabel }} 周{{ weekdayNames[getWeekday() - 1] }}</span>
             </div>
-          </div>
-          <!-- 选中天的详情 -->
-          <div v-if="selectedDay" class="week-day-detail">
-            <h3>{{ selectedDayLabel }} 的任务</h3>
-            <PixelEmpty v-if="selectedDayItems.length === 0" text="该天暂无任务" />
+            <div class="plan__stats">
+              <span>{{ doneCount }}/{{ todayItems.length }} 完成</span>
+              <PixelProgress :value="todayProgress" :max="10" />
+            </div>
+            <PixelEmpty v-if="todayItems.length === 0" text="今日暂无待办，拖进来吧" />
             <ul v-else class="task-list">
               <li
-                v-for="item in selectedDayItems"
+                v-for="item in todayItems"
                 :key="item.id"
-                class="task-list__item"
-                :class="{ 'task-done': item.done }"
+                class="task-list__item task-card"
+                :class="{ 'task-done': item.done, 'task-card--dragging': dragging && dragging.id === item.id }"
               >
+                <span class="drag-handle" title="按住拖动" @pointerdown.prevent="startDrag($event, item)">⠿</span>
                 <span
                   class="task-checkbox"
                   :class="{ 'task-checkbox--checked': item.done }"
                   @click="onToggle(item)"
                 >{{ item.done ? '✔' : '□' }}</span>
+                <span
+                  class="source-dot"
+                  :style="{ background: `var(${sourceColorVar[item.source]})` }"
+                ></span>
                 <span class="task-list__title">{{ item.title }}</span>
                 <span class="task-list__source">{{ sourceLabels[item.source] }}</span>
+                <span v-if="item.priority" class="task-list__priority">
+                  {{ prioritySymbols[item.priority] }}
+                </span>
+                <span v-if="item.timeSlot && item.timeSlot !== 'any'" class="task-list__time-slot">
+                  {{ timeSlotSymbols[item.timeSlot] }}
+                </span>
+                <span v-if="item.timeCost" class="task-list__time-cost">
+                  ⏱{{ item.timeCost }}h
+                </span>
+                <span
+                  v-if="item.source === 'manual'"
+                  class="task-list__actions"
+                >
+                  <button class="pixel-btn" @click="startEdit(item)">改</button>
+                  <button class="pixel-btn pixel-btn--cancel" @click="deleteTask(item)">删</button>
+                </span>
               </li>
             </ul>
+          </section>
+        </div>
+
+        <!-- 本周安排：周一~周日七列，每列可接收拖拽 -->
+        <div class="plan__week">
+          <h3 class="plan__week-title">
+            本周安排
+            <span class="plan__week-sub">{{ weekRange }}</span>
+          </h3>
+          <div class="week-grid">
+            <section
+              v-for="day in weekBoard"
+              :key="day.date"
+              class="week-day day-column"
+              :data-drop-date="day.date"
+              :class="{
+                'week-day--today': day.date === todayStr,
+                'day-column--over': overDate === day.date
+              }"
+              @click="selectDay(day.date)"
+            >
+              <div class="week-day__header">
+                <span class="week-day__name">周{{ weekdayNames[day.weekday - 1] }}</span>
+                <span class="week-day__date">{{ day.label }}</span>
+              </div>
+              <div class="week-day__count">{{ day.count }} 项</div>
+              <ul v-if="day.items.length" class="task-list task-list--compact">
+                <li
+                  v-for="item in day.items"
+                  :key="item.id"
+                  class="task-list__item task-card"
+                  :class="{ 'task-done': item.done, 'task-card--dragging': dragging && dragging.id === item.id }"
+                >
+                  <span class="drag-handle" title="按住拖动" @pointerdown.prevent="startDrag($event, item)">⠿</span>
+                  <span
+                    class="task-checkbox"
+                    :class="{ 'task-checkbox--checked': item.done }"
+                    @click.stop="onToggle(item)"
+                  >{{ item.done ? '✔' : '□' }}</span>
+                  <span class="task-list__title">{{ item.title }}</span>
+                </li>
+              </ul>
+              <div v-else class="week-day__empty">放到这里</div>
+            </section>
           </div>
         </div>
 
@@ -182,15 +202,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import PixelWindow from '@/components/PixelWindow.vue'
 import PixelInput from '@/components/PixelInput.vue'
 import PixelSelect from '@/components/PixelSelect.vue'
 import PixelProgress from '@/components/PixelProgress.vue'
 import PixelEmpty from '@/components/PixelEmpty.vue'
-import { getTodayItems, toggleDone, getItemsByDate, getWeekItemsCount } from '@/db/aggr'
+import {
+  getTodayItems,
+  toggleDone,
+  getWeekBoard,
+  moveItemToDate
+} from '@/db/aggr'
 import { save, remove } from '@/db/dao'
-import { today, formatDate } from '@/utils/date'
+import { today, getWeekday } from '@/utils/date'
 import {
   SOURCE_LABELS,
   SOURCE_COLOR_VAR,
@@ -205,9 +230,8 @@ import {
 const view = ref('today') // 'today' | 'week'
 const showAddForm = ref(false)
 const todayItems = ref([])
-const weekDays = ref([])
+const weekBoard = ref([])
 const selectedDay = ref(null)
-const selectedDayItems = ref([])
 const editingTask = ref(null)
 
 const todayStr = today()
@@ -254,31 +278,130 @@ const todayProgress = computed(() => {
   return Math.round((doneCount.value / todayItems.value.length) * 100)
 })
 
-const selectedDayLabel = computed(() => {
-  if (!selectedDay.value) return ''
-  const d = new Date(selectedDay.value)
+const todayLabel = computed(() => {
+  const d = new Date()
   return `${d.getMonth() + 1}月${d.getDate()}日`
 })
+
+const weekRange = computed(() => {
+  if (!weekBoard.value.length) return ''
+  return `${weekBoard.value[0].label} — ${weekBoard.value[6].label}`
+})
+
+// ===== 拖拽（指针事件，鼠标与手机触摸通用）=====
+const dragging = ref(null)
+const overDate = ref('')
+const dragMsg = ref('')
+let dragState = null
+
+function startDrag(e, item) {
+  if (e.pointerType === 'mouse' && e.button !== 0) return
+  dragState = {
+    item,
+    startX: e.clientX,
+    startY: e.clientY,
+    active: false,
+    ghost: null
+  }
+  window.addEventListener('pointermove', onPointerMove)
+  window.addEventListener('pointerup', onPointerUp)
+  window.addEventListener('pointercancel', onPointerUp)
+}
+
+function onPointerMove(e) {
+  const s = dragState
+  if (!s) return
+  const dx = e.clientX - s.startX
+  const dy = e.clientY - s.startY
+
+  if (!s.active) {
+    if (Math.hypot(dx, dy) < 8) return
+    s.active = true
+    dragging.value = s.item
+    const ghost = document.createElement('div')
+    ghost.className = 'plan-drag-ghost'
+    ghost.textContent = s.item.title
+    ghost.style.cssText = [
+      'position:fixed',
+      'z-index:9999',
+      'pointer-events:none',
+      'padding:6px 12px',
+      'border:3px solid var(--accent)',
+      'background:var(--panel)',
+      'color:var(--text)',
+      'font-weight:700',
+      'font-size:16px',
+      'box-shadow:3px 3px 0 var(--shadow)',
+      'max-width:240px',
+      'white-space:nowrap',
+      'overflow:hidden',
+      'text-overflow:ellipsis'
+    ].join(';')
+    document.body.appendChild(ghost)
+    s.ghost = ghost
+  }
+
+  s.ghost.style.left = `${e.clientX + 14}px`
+  s.ghost.style.top = `${e.clientY - 18}px`
+
+  const el = document.elementFromPoint(e.clientX, e.clientY)
+  const col = el && el.closest ? el.closest('[data-drop-date]') : null
+  overDate.value = col ? col.getAttribute('data-drop-date') : ''
+}
+
+async function onPointerUp(e) {
+  const s = dragState
+  cleanupDrag()
+  if (!s || !s.active) return
+
+  const el = document.elementFromPoint(e.clientX, e.clientY)
+  const col = el && el.closest ? el.closest('[data-drop-date]') : null
+  if (!col) return
+
+  let target = col.getAttribute('data-drop-date')
+  if (target === 'today') target = todayStr
+
+  const ok = await moveItemToDate(s.item, target)
+  if (!ok) {
+    dragMsg.value = '健身任务按星期排程，不能拖到其他日期'
+    setTimeout(() => { dragMsg.value = '' }, 2500)
+    return
+  }
+  dragMsg.value = `已移动到 ${target.slice(5)}`
+  setTimeout(() => { dragMsg.value = '' }, 2000)
+  await refresh()
+}
+
+function cleanupDrag() {
+  window.removeEventListener('pointermove', onPointerMove)
+  window.removeEventListener('pointerup', onPointerUp)
+  window.removeEventListener('pointercancel', onPointerUp)
+  if (dragState && dragState.ghost) dragState.ghost.remove()
+  dragState = null
+  dragging.value = null
+  overDate.value = ''
+}
+
+function selectDay(dateStr) {
+  selectedDay.value = dateStr
+}
 
 async function loadTodayItems() {
   todayItems.value = await getTodayItems()
 }
 
-async function loadWeekDays() {
-  weekDays.value = await getWeekItemsCount()
+async function loadWeekBoard() {
+  weekBoard.value = await getWeekBoard()
 }
 
-async function selectDay(dateStr) {
-  selectedDay.value = dateStr
-  selectedDayItems.value = await getItemsByDate(dateStr)
+async function refresh() {
+  await loadTodayItems()
+  await loadWeekBoard()
 }
 
 async function onToggle(item) {
   await toggleDone(item)
-  await loadTodayItems()
-  if (selectedDay.value) {
-    await selectDay(selectedDay.value)
-  }
+  await refresh()
 }
 
 async function saveNewTask() {
@@ -289,14 +412,13 @@ async function saveNewTask() {
     priority: newTask.value.priority,
     note: newTask.value.note,
     timeCost: Number(newTask.value.timeCost) || 0,
-    timeSlot: newTask.value.timeSlot || TIME_SLOT.ANY,
+    timeSlot: newTask.value.timeSlot,
     done: false,
     source: 'manual'
   })
   newTask.value = { title: '', date: todayStr, priority: PRIORITY.MEDIUM, note: '', timeCost: 0, timeSlot: TIME_SLOT.ANY }
   showAddForm.value = false
-  await loadTodayItems()
-  await loadWeekDays()
+  await refresh()
 }
 
 function startEdit(item) {
@@ -317,20 +439,16 @@ async function saveEdit() {
     source: 'manual'
   })
   editingTask.value = null
-  await loadTodayItems()
-  await loadWeekDays()
+  await refresh()
 }
 
 async function deleteTask(item) {
   await remove('tasks', item.sourceId)
-  await loadTodayItems()
-  await loadWeekDays()
+  await refresh()
 }
 
-onMounted(async () => {
-  await loadTodayItems()
-  await loadWeekDays()
-})
+onMounted(refresh)
+onUnmounted(cleanupDrag)
 </script>
 
 <style scoped>
@@ -361,12 +479,27 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
   font-size: 1.1rem;
   font-weight: 700;
 }
 .plan__add-actions {
   display: flex;
   gap: 0.5rem;
+}
+.plan__drag-hint {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ochre);
+  margin-bottom: 0.75rem;
+}
+.drag-hint__grip {
+  color: var(--accent);
+  font-size: 1.15rem;
+}
+.plan__drag-msg {
+  margin-left: 0.6rem;
+  color: var(--accent);
 }
 .plan__stats {
   display: flex;
@@ -376,16 +509,52 @@ onMounted(async () => {
   font-size: 1.1rem;
   font-weight: 700;
 }
+.day-column {
+  border: 3px solid var(--border);
+  background: var(--bg);
+  padding: 0.6rem;
+  transition: border-color 0.1s, background 0.1s;
+}
+.day-column--today {
+  border-color: var(--accent);
+  background: var(--panel);
+}
+.day-column--over {
+  border-color: var(--accent);
+  border-style: dashed;
+  background: var(--panel);
+}
+.day-column__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px dashed var(--border);
+}
+.day-column__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.day-column__date {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ochre);
+}
 .task-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
+.task-list--compact {
+  gap: 0.35rem;
+}
 .task-list__item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.5rem;
+  gap: 0.4rem;
+  padding: 0.4rem 0.4rem;
   border-bottom: 2px solid var(--border);
   font-size: 1.1rem;
   font-weight: 700;
@@ -393,8 +562,23 @@ onMounted(async () => {
 .task-list__item:last-child {
   border-bottom: none;
 }
+.task-card--dragging {
+  opacity: 0.4;
+}
+.drag-handle {
+  cursor: grab;
+  touch-action: none;
+  color: var(--accent);
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0.2rem 0.15rem;
+  user-select: none;
+}
 .task-list__title {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .task-list__source {
   font-size: 1rem;
@@ -427,46 +611,102 @@ onMounted(async () => {
   font-size: 1rem;
   font-weight: 700;
 }
+.plan__week {
+  margin-top: 1.25rem;
+}
+.plan__week-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+.plan__week-sub {
+  font-size: 0.95rem;
+  color: var(--ochre);
+}
 .week-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.4rem;
 }
 .week-day {
-  border: 3px solid var(--border);
-  background: var(--bg);
-  padding: 0.5rem;
-  text-align: center;
+  min-height: 130px;
+  padding: 0.4rem;
   cursor: pointer;
-}
-.week-day:hover {
-  background: var(--panel);
 }
 .week-day--today {
   border-color: var(--accent);
   background: var(--panel);
 }
 .week-day__header {
-  font-size: 1.05rem;
-  font-weight: bold;
-  margin-bottom: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 2px dashed var(--border);
+  margin-bottom: 0.3rem;
+}
+.week-day__name {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.week-day__date {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ochre);
 }
 .week-day__count {
-  font-size: 1.1rem;
+  font-size: 0.85rem;
   font-weight: 700;
+  color: var(--text);
+  opacity: 0.65;
+  margin-bottom: 0.25rem;
 }
-.week-day-detail {
-  margin-top: 1rem;
-}
-.week-day-detail h3 {
-  font-size: 1.15rem;
+.week-day__empty {
+  font-size: 0.8rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  color: var(--border);
+  text-align: center;
+  padding: 0.5rem 0;
 }
-@media (max-width: 768px) {
+.week-day .task-list__item {
+  font-size: 0.9rem;
+  padding: 0.25rem 0.15rem;
+  gap: 0.2rem;
+}
+.week-day .drag-handle {
+  font-size: 0.95rem;
+  padding: 0.1rem 0;
+}
+.week-day .task-list__title {
+  line-height: 1.25;
+  word-break: break-all;
+}
+
+/* 平板上两列，便于触控 */
+@media (max-width: 980px) {
   .week-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 手机上：七列改为纵向堆叠，便于手指上下拖动 */
+@media (max-width: 768px) {
+  .week-grid {
+    grid-template-columns: 1fr;
+  }
+  .week-day {
+    min-height: auto;
+  }
+  .week-day__header {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .week-day .task-list__item {
+    font-size: 1rem;
   }
 }
 </style>

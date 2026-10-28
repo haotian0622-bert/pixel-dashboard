@@ -158,7 +158,7 @@ describe('阶段3：首页', () => {
     const wrapper = await mountHome()
     await waitFor(() => {
       const cards = wrapper.findAll('.summary-card')
-      expect(cards.length).toBe(7)
+      expect(cards.length).toBe(6)
     })
 
     expect(wrapper.text()).toContain('1/2')
@@ -170,7 +170,7 @@ describe('阶段3：首页', () => {
     const wrapper = await mountHome()
     await waitFor(() => {
       const cards = wrapper.findAll('.summary-card')
-      expect(cards.length).toBe(7)
+      expect(cards.length).toBe(6)
     })
     const cards = wrapper.findAll('.summary-card')
     await cards[0].trigger('click')

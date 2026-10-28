@@ -152,10 +152,10 @@ describe('阶段2：UI 基础框架', () => {
   })
 
   describe('2.5 侧边栏', () => {
-    it('侧边栏包含 6 个分组', () => {
+    it('侧边栏包含 7 个分组', () => {
       const wrapper = mountWithRouter(PixelSidebar)
       const groups = wrapper.findAll('.sidebar-nav__group')
-      expect(groups.length).toBe(6)
+      expect(groups.length).toBe(7)
     })
 
     it('侧边栏包含 9 个导航项', () => {
@@ -170,12 +170,13 @@ describe('阶段2：UI 基础框架', () => {
       expect(text).toContain('首页')
       expect(text).toContain('本周/今日计划')
       expect(text).toContain('自媒体')
-      expect(text).toContain('开发工作（AI）')
       expect(text).toContain('公司事情安排')
       expect(text).toContain('健身计划')
       expect(text).toContain('学习计划')
       expect(text).toContain('本月开支和收入')
+      expect(text).toContain('抽卡小游戏')
       expect(text).toContain('数据与设置')
+      expect(text).not.toContain('开发工作（AI）')
     })
 
     it('侧边栏每项有模块色块', () => {
@@ -186,14 +187,15 @@ describe('阶段2：UI 基础框架', () => {
   })
 
   describe('2.6 路由配置', () => {
-    it('路由配置包含 9 个模块路由', async () => {
+    it('路由配置包含全部模块路由', async () => {
       const routerModule = await import('../router/index.js')
       const routes = routerModule.default.options.routes
       const names = routes.map(r => r.name)
-      const expected = ['home', 'plan', 'media', 'dev', 'devDetail', 'company', 'fitness', 'study', 'studyDetail', 'finance', 'settings']
+      const expected = ['home', 'plan', 'media', 'company', 'fitness', 'study', 'studyDetail', 'finance', 'game', 'settings']
       for (const name of expected) {
         expect(names).toContain(name)
       }
+      expect(names).not.toContain('dev')
     })
   })
 
