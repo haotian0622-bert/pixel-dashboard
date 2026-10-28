@@ -27,8 +27,8 @@ describe('阶段12：响应式适配', () => {
     const css = readView('Plan.vue')
     expect(css).toContain('@media')
     expect(css).toContain('max-width: 768px')
-    // 周视图网格应变窄
-    expect(css).toContain('repeat(2, 1fr)')
+    // 周视图始终 7 列横滑（用户需求调整：不再改 2 列）
+    expect(css).toContain('repeat(7,')
   })
 
   it('健身模块 CSS 包含窄屏响应式规则', () => {

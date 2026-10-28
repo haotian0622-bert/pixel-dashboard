@@ -94,7 +94,7 @@ async function collectItemsForDate(dateStr) {
   const weekday = getWeekday(dateStr)
   const items = []
 
-  // 1. 手动任务
+  // 1. 手动任务（带 sortOrder，用于首页拖拽排序）
   const tasks = await query('tasks', 'date', dateStr)
   for (const t of tasks) {
     items.push({
@@ -107,7 +107,8 @@ async function collectItemsForDate(dateStr) {
       date: t.date,
       note: t.note || '',
       timeCost: t.timeCost || 0,
-      timeSlot: t.timeSlot || 'any'
+      timeSlot: t.timeSlot || 'any',
+      sortOrder: typeof t.sortOrder === 'number' ? t.sortOrder : null
     })
   }
 
@@ -206,7 +207,35 @@ async function collectItemsForDate(dateStr) {
     }
   }
 
-  return items
+  // === 统一排序 ===
+  // 规则：未完成在前 → 手动任务按 sortOrder 升序 → 其他来源按 priority 高到低
+  // priority high=1 / medium=2 / low=3 映射
+  const PRI_RANK = { high: 1, medium: 2, low: 3 }
+  const sorted = [...items].sort((a, b) => {
+    if (!!a.done !== !!b.done) return a.done ? 1 : -1           // 未完成先
+    if (a.source === SOURCE.MANUAL && b.source === SOURCE.MANUAL) {
+      const soA = a.sortOrder === null ? Number.MAX_SAFE_INTEGER : a.sortOrder
+      const soB = b.sortOrder === null ? Number.MAX_SAFE_INTEGER : b.sortOrder
+      return soA - soB                                          // 手动按 sortOrder
+    }
+    if (a.source === SOURCE.MANUAL) return -1                    // 手动先于其他
+    if (b.source === SOURCE.MANUAL) return 1
+    const prA = PRI_RANK[a.priority] || 2
+    const prB = PRI_RANK[b.priority] || 2
+    return prA - prB                                            // 其他按优先级
+  })
+  return sorted
+}
+
+/**
+ * 批量重排手动任务的 sortOrder（首页今日计划内拖拽排序后调用）
+ * @param {Array<{sourceId:string}>} manualItemsInNewOrder 新顺序的手动任务
+ */
+export async function reorderManualTasks(manualItemsInNewOrder) {
+  for (let i = 0; i < manualItemsInNewOrder.length; i++) {
+    const id = manualItemsInNewOrder[i].sourceId
+    if (id) await patch('tasks', id, { sortOrder: i })
+  }
 }
 
 /**

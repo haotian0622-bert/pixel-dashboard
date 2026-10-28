@@ -1,5 +1,31 @@
 <template>
   <div class="plan">
+    <!-- 右侧悬浮快捷改期条（和首页一样，辅助手机跨天拖动） -->
+    <div
+      class="plan__quick-strip home__quick-strip"
+      :class="{
+        'home__quick-strip--open': quickStripOpen,
+        'home__quick-strip--drag-over': !!stripOverDate
+      }"
+      @mouseenter="quickStripOpen = true"
+      @mouseleave="quickStripOpen = false"
+    >
+      <div class="home__quick-strip__label">
+        <span v-if="quickStripOpen">挪到</span>
+        <span v-else class="home__quick-strip__hint">日期</span>
+      </div>
+      <button
+        v-for="d in upcomingDates"
+        :key="d.date"
+        class="home__quick-strip__item"
+        :data-strip-date="d.date"
+        :class="{ 'home__quick-strip__item--over': stripOverDate === d.date, 'home__quick-strip__item--today': d.isToday }"
+      >
+        <span class="home__quick-strip__wd">周{{ d.wd }}</span>
+        <span class="home__quick-strip__md">{{ d.md }}</span>
+      </button>
+    </div>
+
     <PixelWindow :title="currentViewTitle" :icon="currentViewIcon">
       <template #default>
         <!-- 视图切换 -->
@@ -215,7 +241,7 @@ import {
   moveItemToDate
 } from '@/db/aggr'
 import { save, remove } from '@/db/dao'
-import { today, getWeekday } from '@/utils/date'
+import { today, getWeekday, formatDate } from '@/utils/date'
 import {
   SOURCE_LABELS,
   SOURCE_COLOR_VAR,
@@ -236,6 +262,28 @@ const editingTask = ref(null)
 
 const todayStr = today()
 const weekdayNames = ['一', '二', '三', '四', '五', '六', '日']
+
+// 右侧快捷日期条（和首页一样）
+const quickStripOpen = ref(false)
+const stripOverDate = ref('')
+
+const upcomingDates = computed(() => {
+  const todayObj = new Date()
+  const result = []
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(todayObj)
+    d.setDate(todayObj.getDate() + i)
+    const dateStr = formatDate(d)
+    const wd = getWeekday(dateStr)
+    result.push({
+      date: dateStr,
+      wd: weekdayNames[wd - 1],
+      md: `${d.getMonth() + 1}/${d.getDate()}`,
+      isToday: false
+    })
+  }
+  return result
+})
 
 const newTask = ref({
   title: '',
@@ -344,7 +392,16 @@ function onPointerMove(e) {
   s.ghost.style.left = `${e.clientX + 14}px`
   s.ghost.style.top = `${e.clientY - 18}px`
 
+  // 先查右侧快捷日期条
   const el = document.elementFromPoint(e.clientX, e.clientY)
+  const stripItem = el && el.closest ? el.closest('[data-strip-date]') : null
+  if (stripItem) {
+    stripOverDate.value = stripItem.getAttribute('data-strip-date')
+    overDate.value = ''
+    return
+  }
+  stripOverDate.value = ''
+
   const col = el && el.closest ? el.closest('[data-drop-date]') : null
   overDate.value = col ? col.getAttribute('data-drop-date') : ''
 }
@@ -354,7 +411,23 @@ async function onPointerUp(e) {
   cleanupDrag()
   if (!s || !s.active) return
 
+  // 先查是不是放到了右侧快捷日期条
   const el = document.elementFromPoint(e.clientX, e.clientY)
+  const stripItem = el && el.closest ? el.closest('[data-strip-date]') : null
+  if (stripItem) {
+    const target = stripItem.getAttribute('data-strip-date')
+    const ok = await moveItemToDate(s.item, target)
+    if (!ok) {
+      dragMsg.value = '健身任务按星期排程，不能拖到其他日期'
+      setTimeout(() => { dragMsg.value = '' }, 2500)
+      return
+    }
+    dragMsg.value = `已移动到 ${target.slice(5)}`
+    setTimeout(() => { dragMsg.value = '' }, 2000)
+    await refresh()
+    return
+  }
+
   const col = el && el.closest ? el.closest('[data-drop-date]') : null
   if (!col) return
 
@@ -380,6 +453,7 @@ function cleanupDrag() {
   dragState = null
   dragging.value = null
   overDate.value = ''
+  stripOverDate.value = ''
 }
 
 function selectDay(dateStr) {
@@ -628,8 +702,14 @@ onUnmounted(cleanupDrag)
 }
 .week-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(90px, 1fr));
   gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.3rem;
+}
+.plan__week {
+  margin-top: 1.25rem;
+  overflow-x: hidden; /* week-grid 自己滚 */
 }
 .week-day {
   min-height: 130px;
@@ -686,27 +766,113 @@ onUnmounted(cleanupDrag)
   word-break: break-all;
 }
 
-/* 平板上两列，便于触控 */
-@media (max-width: 980px) {
-  .week-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* 手机上：七列改为纵向堆叠，便于手指上下拖动 */
+/* 手机上：7 列保持横滑，内容缩小 */
 @media (max-width: 768px) {
   .week-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(7, minmax(80px, 1fr));
+    gap: 0.25rem;
   }
   .week-day {
     min-height: auto;
+    padding: 0.3rem;
   }
   .week-day__header {
     flex-direction: row;
     justify-content: space-between;
+    padding-bottom: 0.2rem;
   }
+  .week-day__name { font-size: 0.9rem; }
+  .week-day__date { font-size: 0.8rem; }
   .week-day .task-list__item {
-    font-size: 1rem;
+    font-size: 0.9rem;
+    padding: 0.2rem 0.1rem;
   }
+}
+
+/* ===== 右侧快捷日期条（Plan 页自己的 scoped 版本）===== */
+.plan__quick-strip.home__quick-strip {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  width: 48px;
+  background: var(--panel);
+  border: 3px solid var(--border);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  padding: 0.4rem 0.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  transition: width 0.2s, padding 0.2s, background 0.15s, border-color 0.15s;
+  box-shadow: -3px 3px 0 var(--shadow);
+}
+.plan__quick-strip.home__quick-strip--open {
+  width: 96px;
+  padding: 0.5rem 0.35rem;
+}
+.plan__quick-strip.home__quick-strip--drag-over {
+  background: var(--bg);
+  border-color: var(--accent);
+}
+.plan__quick-strip .home__quick-strip__label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ochre);
+  writing-mode: vertical-rl;
+  letter-spacing: 2px;
+  padding: 0.35rem 0.1rem;
+  border-bottom: 2px dashed var(--border);
+  margin-bottom: 0.25rem;
+}
+.plan__quick-strip.home__quick-strip--open .home__quick-strip__label {
+  writing-mode: horizontal-tb;
+  letter-spacing: 0;
+  font-size: 1rem;
+  text-align: center;
+  padding: 0;
+}
+.plan__quick-strip .home__quick-strip__hint {
+  font-size: 1rem;
+  color: var(--accent);
+}
+.plan__quick-strip .home__quick-strip__item {
+  width: 100%;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  padding: 0.35rem 0.15rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  border-radius: 4px;
+  transition: background 0.1s, border-color 0.1s, transform 0.1s;
+}
+.plan__quick-strip .home__quick-strip__item:hover {
+  background: var(--panel);
+  border-color: var(--accent);
+}
+.plan__quick-strip .home__quick-strip__item--over {
+  background: var(--panel);
+  border-color: var(--accent);
+  border-style: dashed;
+  transform: translateX(-2px);
+}
+.plan__quick-strip .home__quick-strip__wd {
+  font-size: 0.9rem;
+  color: var(--ochre);
+}
+.plan__quick-strip .home__quick-strip__md {
+  font-size: 0.95rem;
+}
+@media (max-width: 768px) {
+  .plan__quick-strip.home__quick-strip { width: 44px; }
+  .plan__quick-strip.home__quick-strip--open { width: 88px; }
 }
 </style>
