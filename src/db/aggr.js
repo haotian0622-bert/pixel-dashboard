@@ -81,13 +81,21 @@ export async function moveItemToDate(item, dateStr) {
 export async function getTodayItems() {
   // 每天首次加载时，把之前未完成的任务顺延到今天
   await carryOverUnfinishedTasks()
+  return collectItemsForDate(today())
+}
 
-  const todayStr = today()
-  const weekday = getWeekday()
+/**
+ * 汇集指定日期的所有项
+ * 各模块按各自的日期字段匹配；健身按星期排程，仅今日展示
+ * @param {string} dateStr YYYY-MM-DD
+ */
+async function collectItemsForDate(dateStr) {
+  const isTodayDate = dateStr === today()
+  const weekday = getWeekday(dateStr)
   const items = []
 
-  // 1. 手动任务（tasks 中 source == 'manual' 且 date == today）
-  const tasks = await query('tasks', 'date', todayStr)
+  // 1. 手动任务
+  const tasks = await query('tasks', 'date', dateStr)
   for (const t of tasks) {
     items.push({
       id: t.id,
@@ -103,8 +111,8 @@ export async function getTodayItems() {
     })
   }
 
-  // 2. 自媒体待发且发布日期=今日
-  const media = await query('media', 'publishDate', todayStr)
+  // 2. 自媒体待发且发布日期匹配
+  const media = await query('media', 'publishDate', dateStr)
   for (const m of media) {
     if (m.status === MEDIA_STATUS.SCHEDULED) {
       items.push({
@@ -122,8 +130,8 @@ export async function getTodayItems() {
     }
   }
 
-  // 3. 开发任务今日到期且未完成
-  const devTasks = await query('devTasks', 'dueDate', todayStr)
+  // 3. 开发任务到期且未完成
+  const devTasks = await query('devTasks', 'dueDate', dateStr)
   for (const t of devTasks) {
     if (!t.done) {
       items.push({
@@ -141,8 +149,8 @@ export async function getTodayItems() {
     }
   }
 
-  // 4. 公司事项今日截止且未完成
-  const companyItems = await query('companyItems', 'deadline', todayStr)
+  // 4. 公司事项截止且未完成
+  const companyItems = await query('companyItems', 'deadline', dateStr)
   for (const c of companyItems) {
     if (c.status !== COMPANY_STATUS.DONE && c.status !== COMPANY_STATUS.SHELVED) {
       items.push({
@@ -160,25 +168,27 @@ export async function getTodayItems() {
     }
   }
 
-  // 5. 健身今日训练（按星期几查排程）
-  const fitnessSchedule = await query('fitnessSchedule', 'weekday', weekday)
-  for (const f of fitnessSchedule) {
-    items.push({
-      id: `fitness-${f.id}`,
-      title: `训练: ${f.name}`,
-      source: SOURCE.FITNESS,
-      sourceId: f.id,
-      priority: 'medium',
-      done: false, // 打卡状态在 fitnessLogs 中查
-      date: todayStr,
-      note: '',
-      timeCost: 0,
-      timeSlot: 'any'
-    })
+  // 5. 健身今日训练（按星期几查排程，仅今日，避免提前勾选）
+  if (isTodayDate) {
+    const fitnessSchedule = await query('fitnessSchedule', 'weekday', weekday)
+    for (const f of fitnessSchedule) {
+      items.push({
+        id: `fitness-${f.id}`,
+        title: `训练: ${f.name}`,
+        source: SOURCE.FITNESS,
+        sourceId: f.id,
+        priority: 'medium',
+        done: false, // 打卡状态在 fitnessLogs 中查
+        date: dateStr,
+        note: '',
+        timeCost: 0,
+        timeSlot: 'any'
+      })
+    }
   }
 
-  // 6. 学习任务今日到期且未完成
-  const studyTasks = await query('studyTasks', 'dueDate', todayStr)
+  // 6. 学习任务到期且未完成
+  const studyTasks = await query('studyTasks', 'dueDate', dateStr)
   for (const t of studyTasks) {
     if (!t.done) {
       items.push({
@@ -263,28 +273,12 @@ export async function toggleDone(item) {
  * 获取指定日期的所有项（用于本周视图的某天展开）
  */
 export async function getItemsByDate(dateStr) {
-  const isTodayStr = dateStr === today()
-  if (isTodayStr) {
-    return getTodayItems()
-  }
-
-  // 非今日：只查手动任务（其他模块的汇集仅对今日生效）
-  const tasks = await query('tasks', 'date', dateStr)
-  return tasks.map(t => ({
-    id: t.id,
-    title: t.title,
-    source: SOURCE.MANUAL,
-    sourceId: t.id,
-    priority: t.priority || 'medium',
-    done: !!t.done,
-    date: t.date,
-    note: t.note || ''
-  }))
+  return collectItemsForDate(dateStr)
 }
 
 /**
  * 获取本周看板：周一~周日，每天带日期、标签与任务列表
- * 今日列包含各模块汇集的今日项，其余天只含手动任务
+ * 每天均汇集各模块对应日期的条目
  */
 export async function getWeekBoard() {
   const monday = getMondayOfWeek()

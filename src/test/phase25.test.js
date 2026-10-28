@@ -156,6 +156,21 @@ describe('本轮优化', () => {
       expect(ok).toBe(false)
     })
 
+    it('拖到其他日期后仍在周看板对应列显示', async () => {
+      // 选一个本周内、但不是今天的日期，避免跨周边界
+      const boardBefore = await getWeekBoard()
+      const targetDay = boardBefore.find(d => d.date !== today())
+      expect(targetDay).toBeDefined()
+
+      const m = await save('media', { title: '本周视频', status: 'scheduled', publishDate: today() })
+      await moveItemToDate({ source: 'media', sourceId: m.id }, targetDay.date)
+
+      const board = await getWeekBoard()
+      const day = board.find(d => d.date === targetDay.date)
+      expect(day).toBeDefined()
+      expect(day.items.some(i => i.title.includes('本周视频'))).toBe(true)
+    })
+
     it('每日未完成的手动任务自动顺延到今天', async () => {
       await save('tasks', { title: '昨天没做完', date: '2020-01-01', source: 'manual', done: false })
       await save('tasks', { title: '昨天做完了', date: '2020-01-02', source: 'manual', done: true })
