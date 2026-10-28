@@ -52,6 +52,32 @@
         </ul>
       </div>
 
+      <!-- 每日加油 -->
+      <div class="settings__section">
+        <h3>每日加油语句</h3>
+        <p class="settings__tip">
+          每天第一次打开 App 时会出现一条全屏打气语句。
+          这里可以自定义属于你的文案（每行一条，想写多少写多少）。
+          留空或点「恢复默认」即使用内置的 40 条。
+        </p>
+        <textarea
+          class="pixel-input settings__tips-textarea"
+          v-model="tipsText"
+          rows="8"
+          placeholder="第一行&#10;第二行&#10;..."
+        ></textarea>
+        <div class="settings__tips-actions">
+          <button class="pixel-btn pixel-btn--confirm" @click="saveTips" :disabled="tipsSaving">
+            {{ tipsSaving ? '保存中…' : '保存我的语句' }}
+          </button>
+          <button class="pixel-btn" @click="restoreDefaultTips">恢复默认</button>
+          <span class="settings__tips-status">
+            当前：{{ usingCustom ? `自定义 ${activeTips.length} 条` : '默认 40 条' }}
+          </span>
+        </div>
+        <p v-if="tipsMsg" class="settings__save-msg">✔ {{ tipsMsg }}</p>
+      </div>
+
       <!-- 数据导出导入 -->
       <div class="settings__section">
         <h3>数据管理</h3>
@@ -90,9 +116,65 @@ import { exportAll, importAll, clearAll } from '@/db/backup'
 import { DB_NAME, DB_VERSION } from '@/db/init'
 import { getAll } from '@/db/dao'
 import { STORES } from '@/utils/constants'
+import {
+  DAILY_TIPS,
+  loadCustomTips,
+  saveCustomTips,
+  textToTips,
+  tipsToText
+} from '@/utils/tips'
 
 const themeStore = useThemeStore()
 const showClearDialog = ref(false)
+
+// 每日加油语句
+const tipsText = ref('')
+const tipsSaving = ref(false)
+const tipsMsg = ref('')
+const usingCustom = ref(false)
+const activeTips = ref([])
+
+function loadTipsToForm() {
+  const custom = loadCustomTips()
+  if (custom && custom.length) {
+    tipsText.value = tipsToText(custom)
+    usingCustom.value = true
+    activeTips.value = custom
+  } else {
+    tipsText.value = ''
+    usingCustom.value = false
+    activeTips.value = DAILY_TIPS
+  }
+}
+
+function saveTips() {
+  tipsSaving.value = true
+  try {
+    const arr = textToTips(tipsText.value)
+    if (arr.length === 0) {
+      saveCustomTips(null)
+      usingCustom.value = false
+      activeTips.value = DAILY_TIPS
+      tipsMsg.value = '已恢复为默认语句'
+      tipsText.value = ''
+    } else {
+      saveCustomTips(arr)
+      usingCustom.value = true
+      activeTips.value = arr
+      tipsMsg.value = `已保存 ${arr.length} 条自定义语句，明天打开 App 就能看到你的了`
+    }
+  } finally {
+    tipsSaving.value = false
+  }
+}
+
+function restoreDefaultTips() {
+  saveCustomTips(null)
+  tipsText.value = ''
+  usingCustom.value = false
+  activeTips.value = DAILY_TIPS
+  tipsMsg.value = '已恢复为默认 40 条语句'
+}
 
 // 手动保存（导出备份）
 const BACKUP_KEY = 'pixel-dashboard:last-backup'
@@ -188,6 +270,7 @@ async function doClear() {
 onMounted(() => {
   loadLastBackup()
   refreshCount()
+  loadTipsToForm()
 })
 </script>
 
@@ -205,6 +288,27 @@ onMounted(() => {
 .settings__storage { display: flex; flex-direction: column; gap: 0.4rem; border: 3px solid var(--border); background: var(--bg); padding: 0.7rem; }
 .settings__storage li { font-size: 0.95rem; font-weight: 700; line-height: 1.5; word-break: break-all; }
 .settings__storage-label { font-weight: 700; color: var(--ochre); }
+.settings__tips-textarea {
+  width: 100%;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.6;
+  padding: 0.6rem;
+  box-sizing: border-box;
+  resize: vertical;
+}
+.settings__tips-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+.settings__tips-status {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ochre);
+}
 @media (max-width: 768px) {
   .settings__save-btn { width: 100%; }
 }

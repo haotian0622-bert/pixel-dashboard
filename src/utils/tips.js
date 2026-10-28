@@ -1,6 +1,7 @@
 /**
  * 每日加油打气 tips
  * 每天按日期稳定选出一条，同一天多次打开内容一致
+ * 用户可在「设置 → 每日加油」自定义自己的列表（每行一条），保存后优先使用
  */
 
 export const DAILY_TIPS = [
@@ -46,13 +47,64 @@ export const DAILY_TIPS = [
   '今天也要相信，好事正在发生。'
 ]
 
+/** localStorage key */
+const CUSTOM_TIPS_KEY = 'pixel-dashboard:custom-tips'
+
+/**
+ * 读取用户自定义列表
+ * @returns {string[] | null} 若未定义则返回 null
+ */
+export function loadCustomTips() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_TIPS_KEY)
+    if (!raw) return null
+    const arr = JSON.parse(raw)
+    if (!Array.isArray(arr)) return null
+    const cleaned = arr.map(s => String(s || '').trim()).filter(Boolean)
+    return cleaned.length ? cleaned : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 保存用户自定义列表
+ * @param {string[] | null} list 传 null 等同于清空
+ */
+export function saveCustomTips(list) {
+  if (!list || !Array.isArray(list)) {
+    localStorage.removeItem(CUSTOM_TIPS_KEY)
+    return
+  }
+  const cleaned = list.map(s => String(s || '').trim()).filter(Boolean)
+  if (cleaned.length === 0) {
+    localStorage.removeItem(CUSTOM_TIPS_KEY)
+  } else {
+    localStorage.setItem(CUSTOM_TIPS_KEY, JSON.stringify(cleaned))
+  }
+}
+
 /**
  * 根据日期取一条稳定的 tip
+ * 优先使用用户自定义列表；若未定义则用默认的 40 条
  * @param {string} dateStr YYYY-MM-DD
  */
 export function getDailyTip(dateStr) {
+  const pool = loadCustomTips() || DAILY_TIPS
   const s = String(dateStr || '')
   let sum = 0
   for (let i = 0; i < s.length; i++) sum = (sum * 31 + s.charCodeAt(i)) % 100000
-  return DAILY_TIPS[sum % DAILY_TIPS.length]
+  return pool[sum % pool.length]
+}
+
+/** 把数组转成多行文本（每行一条），便于 Settings 页编辑 */
+export function tipsToText(list) {
+  return (list || []).join('\n')
+}
+
+/** 把多行文本转回数组（忽略空行、去重） */
+export function textToTips(text) {
+  if (!text) return []
+  const arr = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean)
+  return Array.from(new Set(arr))
 }
